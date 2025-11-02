@@ -1,7 +1,7 @@
 // backend/routes/adminBlockIp.js
 const express = require('express');
 const BlockedIP = require('../models/BlockedIP');
-const adminAuth = require('../middleware/adminAuth');
+const { adminAuth } = require('../middleware/adminAuth');
 const router = express.Router();
 const { validateInput } = require('../middleware/auth');
 const { blockIpSchema } = require('../utils/validationSchemas');
