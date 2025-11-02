@@ -5,10 +5,17 @@ import api from '../../utils/api';
 import { RefreshCw, User } from 'lucide-react';
 
 const UserJoin = ({ onClose }) => {
-  const { joinChat } = useSocket();
+  const { joinChat, user } = useSocket(); // Get user from socket context
   const [username, setUsername] = useState('');
   const [avatar, setAvatar] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
+
+  useEffect(() => {
+    // Close modal once user is successfully set in context
+    if (user) {
+      onClose();
+    }
+  }, [user, onClose]);
 
   const generateRandomUser = async () => {
     setIsGenerating(true);
@@ -55,8 +62,6 @@ const UserJoin = ({ onClose }) => {
       avatar: avatar
     });
     
-    // Close modal after joining
-    onClose();
   };
 
   const handleKeyPress = (e) => {
