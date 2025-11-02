@@ -60,19 +60,58 @@ const MessageBubble = ({ message, isOwnMessage, showAvatar }) => {
           </div>
         );
       case 'file':
-        return (
-          <div className="flex items-center space-x-2">
-            <a
-              href={`${import.meta.env.VITE_BACKEND_URL}${message.fileUrl}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-blue-600 dark:text-blue-400 underline break-all"
-              download={message.fileName}
-            >
-              📎 {message.fileName || 'Download file'}
-            </a>
-          </div>
-        );
+        const fileExtension = message.fileName ? message.fileName.split('.').pop().toLowerCase() : '';
+        const isVideo = ['mp4', 'webm', 'ogg'].includes(fileExtension);
+        const isImage = ['jpg', 'jpeg', 'png', 'gif'].includes(fileExtension);
+
+        if (isVideo) {
+          return (
+            <div className="relative">
+              <video
+                src={`${import.meta.env.VITE_BACKEND_URL}${message.fileUrl}`}
+                controls
+                className="max-w-full h-auto rounded-lg"
+              >
+                Your browser does not support the video tag.
+              </video>
+              {message.content && (
+                <p className="text-sm mt-2 break-words whitespace-pre-wrap">
+                  {message.content}
+                </p>
+              )}
+            </div>
+          );
+        } else if (isImage) {
+          return (
+            <div className="relative">
+              <img
+                src={`${import.meta.env.VITE_BACKEND_URL}${message.fileUrl}`}
+                alt="Shared image"
+                className="max-w-full h-auto rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
+                onClick={() => window.open(`${import.meta.env.VITE_BACKEND_URL}${message.fileUrl}`, '_blank')}
+              />
+              {message.content && (
+                <p className="text-sm mt-2 break-words whitespace-pre-wrap">
+                  {message.content}
+                </p>
+              )}
+            </div>
+          );
+        } else {
+          return (
+            <div className="flex items-center space-x-2">
+              <a
+                href={`${import.meta.env.VITE_BACKEND_URL}${message.fileUrl}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-blue-600 dark:text-blue-400 underline break-all"
+                download={message.fileName}
+              >
+                📎 {message.fileName || 'Download file'}
+              </a>
+            </div>
+          );
+        }
       case 'sticker':
         return (
           <div className="relative">

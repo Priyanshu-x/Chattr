@@ -2,13 +2,15 @@ const Message = require('../models/Message');
 
 exports.sendMessage = async (req, res) => {
 	try {
-		const { user, content, type, imageUrl, voiceUrl } = req.body;
+		const { user, content, type, imageUrl, voiceUrl, fileUrl, fileName } = req.body;
 		const message = new Message({
 			user,
 			content,
 			type,
 			imageUrl,
-			voiceUrl
+			voiceUrl,
+			fileUrl,
+			fileName
 		});
 		await message.save();
 		res.status(201).json(message);
@@ -45,7 +47,22 @@ exports.uploadVoice = (req, res) => {
 	}
 };
 
-exports.getMessages = async (req, res) => {
+exports.uploadFile = async (req, res, next) => {
+	try {
+		if (!req.file) {
+			throw new Error('No file uploaded', 400);
+		}
+		res.json({
+			fileUrl: `/uploads/${req.file.filename}`,
+			fileName: req.file.originalname,
+			fileType: req.file.mimetype
+		});
+	} catch (error) {
+		next(error);
+	}
+};
+
+exports.getMessages = async (req, res, next) => {
 	try {
 		const page = parseInt(req.query.page) || 1;
 		const limit = parseInt(req.query.limit) || 50;

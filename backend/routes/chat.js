@@ -1,60 +1,24 @@
 // backend/routes/chat.js
 const express = require('express');
-const multer = require('multer');
 const path = require('path');
 const Message = require('../models/Message');
 const router = express.Router();
 const { validateInput, validateFileUpload } = require('../middleware/auth');
 const { messageSchema } = require('../utils/validationSchemas');
+const upload = require('../middleware/upload'); // Import the new upload middleware
+const fs = require('fs'); // For file system operations
 
-// Configure multer for file uploads
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    if (file.fieldname === 'image') {
-      cb(null, 'uploads/images/');
-    } else if (file.fieldname === 'voice') {
-      cb(null, 'uploads/voice/');
-    } else if (file.fieldname === 'file') {
-      cb(null, 'uploads/files/');
-    }
-  },
-  filename: (req, file, cb) => {
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    cb(null, file.fieldname + '-' + uniqueSuffix + path.extname(file.originalname));
-  }
-});
+// Serve uploaded files statically
+router.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
-const upload = multer({
-  storage: storage,
-  limits: {
-    fileSize: 10 * 1024 * 1024, // 10MB limit
-  },
-  fileFilter: (req, file, cb) => {
-    if (file.fieldname === 'image') {
-      if (file.mimetype.startsWith('image/')) {
-        cb(null, true);
-      } else {
-        cb(new Error('Only image files are allowed'));
-      }
-    } else if (file.fieldname === 'voice') {
-      if (file.mimetype.startsWith('audio/')) {
-        cb(null, true);
-      } else {
-        cb(new Error('Only audio files are allowed'));
-      }
-    } else if (file.fieldname === 'file') {
-      // Accept any file type for generic file uploads
-      cb(null, true);
-    } else {
-      cb(new Error('Invalid file field'));
-    }
-  }
-});
 // Upload generic file
-router.post('/upload/file', upload.single('file'), validateFileUpload(['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'text/plain']), (req, res, next) => {
+router.post('/upload/file', upload.single('file'), validateFileUpload(['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'text/plain', 'image/jpeg', 'image/png', 'image/gif', 'video/mp4', 'audio/mpeg']), (req, res, next) => {
   try {
+    if (!req.file) {
+      return res.status(400).json({ message: 'No file uploaded.' });
+    }
     res.json({
-      fileUrl: `/uploads/files/${req.file.filename}`,
+      fileUrl: `/uploads/${req.file.filename}`,
       fileName: req.file.originalname,
       fileType: req.file.mimetype
     });
@@ -66,8 +30,11 @@ router.post('/upload/file', upload.single('file'), validateFileUpload(['applicat
 // Upload image
 router.post('/upload/image', upload.single('image'), validateFileUpload(['image/jpeg', 'image/png', 'image/gif']), (req, res, next) => {
   try {
+    if (!req.file) {
+      return res.status(400).json({ message: 'No image uploaded.' });
+    }
     res.json({
-      fileUrl: `/uploads/images/${req.file.filename}`,
+      fileUrl: `/uploads/${req.file.filename}`,
       fileName: req.file.originalname
     });
   } catch (error) {
@@ -78,13 +45,33 @@ router.post('/upload/image', upload.single('image'), validateFileUpload(['image/
 // Upload voice message
 router.post('/upload/voice', upload.single('voice'), validateFileUpload(['audio/mpeg', 'audio/wav', 'audio/ogg']), (req, res, next) => {
   try {
+    if (!req.file) {
+      return res.status(400).json({ message: 'No voice message uploaded.' });
+    }
     res.json({
-      fileUrl: `/uploads/voice/${req.file.filename}`,
+      fileUrl: `/uploads/${req.file.filename}`,
       fileName: req.file.originalname
     });
   } catch (error) {
     next(error);
   }
+});
+
+// Download file
+router.get('/download/:filename', (req, res, next) => {
+  const filename = req.params.filename;
+  const filePath = path.join(__dirname, '../uploads', filename);
+
+  fs.access(filePath, fs.constants.F_OK, (err) => {
+    if (err) {
+      return res.status(404).json({ message: 'File not found.' });
+    }
+    res.download(filePath, filename, (err) => {
+      if (err) {
+        next(err);
+      }
+    });
+  });
 });
 
 // Get messages with pagination
