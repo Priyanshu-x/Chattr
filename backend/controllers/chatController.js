@@ -10,7 +10,8 @@ exports.sendMessage = async (req, res) => {
 			imageUrl,
 			voiceUrl,
 			fileUrl,
-			fileName
+			fileName,
+			expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000) // 24 hours from now
 		});
 		await message.save();
 		res.status(201).json(message);

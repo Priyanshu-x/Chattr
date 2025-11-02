@@ -40,15 +40,6 @@ app.use(errorHandler);
 // Socket.io connection handling
 
 
-// Cleanup expired messages every hour
-setInterval(async () => {
-  try {
-    await Message.deleteMany({ expiresAt: { $lt: new Date() } });
-    logger.info('Cleaned up expired messages');
-  } catch (error) {
-    logger.error('Error cleaning up messages:', error);
-  }
-}, 60 * 60 * 1000);
 
 const PORT = process.env.PORT || 5000;
 server.listen(PORT, () => {

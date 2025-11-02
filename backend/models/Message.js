@@ -10,6 +10,7 @@ const MessageSchema = new mongoose.Schema({
   fileName: { type: String },
   isPinned: { type: Boolean, default: false },
   createdAt: { type: Date, default: Date.now },
+  expiresAt: { type: Date },
   reactions: [
     {
       emoji: { type: String, required: true },
@@ -21,6 +22,6 @@ const MessageSchema = new mongoose.Schema({
 MessageSchema.index({ createdAt: 1 });
 MessageSchema.index({ user: 1, createdAt: -1 });
 MessageSchema.index({ isPinned: 1, createdAt: -1 });
-MessageSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 });
+MessageSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 }); // Ensure this index is active
 
 module.exports = mongoose.model('Message', MessageSchema);
