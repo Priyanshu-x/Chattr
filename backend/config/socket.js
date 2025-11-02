@@ -73,6 +73,16 @@ const initializeSocket = (server) => {
         
         io.emit('online-users', onlineUsers);
 
+        // Send user info to the joining user
+        socket.emit('user-info', {
+          id: user._id,
+          username: user.username,
+          avatar: user.avatar,
+          joinedAt: user.joinedAt,
+          lastActive: user.lastActive,
+          messageCount: user.messageCount
+        });
+
         // Send recent messages
         const recentMessages = await Message.find()
           .sort({ createdAt: -1 })
