@@ -76,7 +76,7 @@ const ChatRoom = () => {
 
       {/* Online Users Sidebar */}
       {showSidebar && (
-        <div className="absolute top-16 right-4 w-80 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg z-50 max-h-96 overflow-y-auto">
+        <div className={`fixed inset-y-0 right-0 w-64 sm:w-80 bg-white dark:bg-gray-800 border-l border-gray-200 dark:border-gray-700 shadow-lg z-50 flex flex-col transform ${showSidebar ? 'translate-x-0' : 'translate-x-full'} transition-transform duration-300 ease-in-out`}>
           <div className="p-4 border-b border-gray-200 dark:border-gray-700">
             <h3 className="font-semibold text-gray-900 dark:text-white">Online Users ({onlineUsers.length})</h3>
           </div>
@@ -105,8 +105,8 @@ const ChatRoom = () => {
 
       {/* Click outside to close sidebar */}
       {showSidebar && (
-        <div 
-          className="fixed inset-0 z-40" 
+        <div
+          className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"
           onClick={() => setShowSidebar(false)}
         ></div>
       )}

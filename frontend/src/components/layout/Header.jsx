@@ -8,9 +8,9 @@ const Header = ({ onToggleSidebar, onTogglePinned }) => {
   const { onlineUsers } = useSocket();
 
   return (
-    <header className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-4 py-3 flex items-center justify-between">
+    <header className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-2 py-2 sm:px-4 sm:py-3 flex items-center justify-between">
       {/* Left side */}
-      <div className="flex items-center space-x-4">
+      <div className="flex items-center space-x-2 sm:space-x-4">
         <button
           onClick={onToggleSidebar}
           className="p-2 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors lg:hidden"
@@ -19,9 +19,9 @@ const Header = ({ onToggleSidebar, onTogglePinned }) => {
         </button>
         
         <div className="flex items-center">
-          <img src="/Chattr Logo.png" alt="Chattr Logo" className="h-8 w-8 mr-2 sm:h-9 sm:w-9" />
+          <img src="/Chattr Logo.png" alt="Chattr Logo" className="h-7 w-7 sm:h-8 sm:w-8 mr-2" />
           <div className="flex flex-col">
-            <h1 className="text-xl font-bold text-gray-900 dark:text-white sm:text-2xl">
+            <h1 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white">
               Chattr
             </h1>
             <p className="text-sm text-gray-500 dark:text-gray-400 hidden sm:block">
@@ -32,9 +32,9 @@ const Header = ({ onToggleSidebar, onTogglePinned }) => {
       </div>
 
       {/* Right side */}
-      <div className="flex items-center space-x-2">
+      <div className="flex items-center space-x-1 sm:space-x-2">
         {/* Online users count */}
-        <div className="flex items-center space-x-2 px-3 py-1 bg-green-100 dark:bg-green-900/20 text-green-800 dark:text-green-200 rounded-full">
+        <div className="flex items-center space-x-2 px-2 py-1 sm:px-3 sm:py-1 bg-green-100 dark:bg-green-900/20 text-green-800 dark:text-green-200 rounded-full">
           <div className="w-2 h-2 bg-green-500 rounded-full"></div>
           <span className="text-sm font-medium">{onlineUsers.length} online</span>
         </div>

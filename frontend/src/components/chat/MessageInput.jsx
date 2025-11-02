@@ -232,7 +232,7 @@ const MessageInput = () => {
         </div>
       )}
 
-      <div className="flex items-end space-x-2 p-4">
+      <div className="flex items-end space-x-2 p-2 sm:p-4">
         {/* Action Buttons */}
         <div className="flex space-x-1">
           {/* Image Upload */}
@@ -274,12 +274,12 @@ const MessageInput = () => {
             onKeyPress={handleKeyPress}
             placeholder={isRecording ? "Recording..." : "Type a message..."}
             disabled={isRecording || isUploading}
-            className="w-full resize-none bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 border border-gray-300 dark:border-gray-600 rounded-2xl px-4 py-3 pr-12 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+            className="w-full resize-none bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 border border-gray-300 dark:border-gray-600 rounded-2xl px-3 py-2 sm:px-4 sm:py-3 pr-10 sm:pr-12 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
             rows={1}
           />
           
           {isRecording && (
-            <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+            <div className="absolute right-2 sm:right-3 top-1/2 transform -translate-y-1/2">
               <div className="flex space-x-1">
                 <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
                 <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse" style={{ animationDelay: '0.2s' }}></div>
@@ -293,7 +293,7 @@ const MessageInput = () => {
         <button
           onClick={handleSendMessage}
           disabled={(!message.trim() && !selectedFile) || isUploading}
-          className="p-3 bg-blue-500 text-white rounded-full hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          className="p-2 sm:p-3 bg-blue-500 text-white rounded-full hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
         >
           {isUploading ? (
             <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
