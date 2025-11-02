@@ -13,6 +13,11 @@
   }
 }
 
+img {
+  max-width: 100%;
+  height: auto;
+}
+
 @layer components {
   .chat-bubble {
     @apply max-w-xs md:max-w-md lg:max-w-lg xl:max-w-xl;
@@ -152,4 +157,25 @@
 
 .animate-pulse-slow {
   animation: pulse 2s infinite;
+}
+
+@media (max-width: 480px) {
+  body {
+    font-size: 14px;
+  }
+  /* Add more mobile-specific styles here */
+}
+
+@media (min-width: 481px) and (max-width: 768px) {
+  body {
+    font-size: 15px;
+  }
+  /* Add more tablet-specific styles here */
+}
+
+@media (min-width: 769px) and (max-width: 1024px) {
+  body {
+    font-size: 16px;
+  }
+  /* Add more small-desktop-specific styles here */
 }

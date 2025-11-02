@@ -18,14 +18,16 @@ const Header = ({ onToggleSidebar, onTogglePinned }) => {
           <Menu className="h-5 w-5" />
         </button>
         
-        <div>
-          <img src="/Chattr Logo.png" alt="Chattr Logo" className="h-8 w-8 mr-2" />
-          <h1 className="text-xl font-bold text-gray-900 dark:text-white">
-            Chattr
-          </h1>
-          <p className="text-sm text-gray-500 dark:text-gray-400">
-            Welcome to the community
-          </p>
+        <div className="flex items-center">
+          <img src="/Chattr Logo.png" alt="Chattr Logo" className="h-8 w-8 mr-2 sm:h-9 sm:w-9" />
+          <div className="flex flex-col">
+            <h1 className="text-xl font-bold text-gray-900 dark:text-white sm:text-2xl">
+              Chattr
+            </h1>
+            <p className="text-sm text-gray-500 dark:text-gray-400 hidden sm:block">
+              Welcome to the community
+            </p>
+          </div>
         </div>
       </div>
 
