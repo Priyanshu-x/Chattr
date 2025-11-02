@@ -111,11 +111,7 @@ const AdminLogin = () => {
         </div>
 
         {/* Demo Credentials */}
-        <div className="mt-6 p-3 bg-gray-100 dark:bg-gray-700 rounded-lg">
-          <p className="text-xs text-gray-600 dark:text-gray-400 text-center">
-            Demo: admin / admin123
-          </p>
-        </div>
+  
       </div>
     </div>
   );

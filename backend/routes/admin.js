@@ -8,14 +8,17 @@ const { adminAuth } = require('../middleware/adminAuth');
 const router = express.Router();
 const { validateInput } = require('../middleware/auth');
 const { banUserSchema, announcementSchema } = require('../utils/validationSchemas');
+const logger = require('../utils/logger');
 
 // Admin login
-router.post('/login', async (req, res) => {
+router.post('/login', async (req, res, next) => {
   try {
     const { username, password } = req.body;
+    logger.info(`Admin login attempt for username: ${username}`);
     
     let admin = await AdminUser.findOne({ username });
     if (!admin) {
+      logger.warn(`Admin user ${username} not found. Attempting to create default.`);
       // Create default admin if doesn't exist
       if (username === process.env.ADMIN_USERNAME) {
         admin = new AdminUser({
@@ -23,24 +26,29 @@ router.post('/login', async (req, res) => {
           password: process.env.ADMIN_PASSWORD
         });
         await admin.save();
+        logger.info(`Default admin user ${username} created.`);
       } else {
+        logger.error(`Invalid credentials for ${username}: Admin user not found and not default.`);
         throw new Error('Invalid credentials', 401);
       }
     }
 
     const isValid = await admin.comparePassword(password);
     if (!isValid) {
+      logger.error(`Invalid credentials for ${username}: Password mismatch.`);
       throw new Error('Invalid credentials', 401);
     }
 
     admin.lastLogin = new Date();
     await admin.save();
+    logger.info(`Admin ${username} logged in successfully. Updating lastLogin.`);
 
     const token = jwt.sign(
       { adminId: admin._id, role: admin.role },
       process.env.JWT_SECRET,
       { expiresIn: '24h' }
     );
+    logger.info(`JWT token generated for admin ${username}.`);
 
     res.json({
       token,
@@ -51,6 +59,7 @@ router.post('/login', async (req, res) => {
       }
     });
   } catch (error) {
+    logger.error(`Admin login error for ${req.body.username}: ${error.message}`);
     next(error);
   }
 });
