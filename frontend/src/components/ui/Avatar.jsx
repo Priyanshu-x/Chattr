@@ -15,6 +15,11 @@ const Avatar = ({ src, alt, size = 'md', className = '' }) => {
       src={src}
       alt={alt}
       className={`${sizeClasses[size]} rounded-full object-cover ${className}`}
+      onError={(e) => {
+        console.error('Avatar failed to load:', src, e);
+        e.target.onerror = null; // Prevent infinite loop if fallback also fails
+        e.target.src = '/public/image-removebg-preview.png'; // Fallback image
+      }}
     />
   );
 };

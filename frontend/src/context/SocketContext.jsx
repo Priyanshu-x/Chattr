@@ -16,10 +16,29 @@ export const SocketProvider = ({ children }) => {
   const [user, setUser] = useState(null);
 
   useEffect(() => {
-    console.log('Initializing socket connection...');
-    const newSocket = io(import.meta.env.VITE_BACKEND_URL, {
+    const backendUrl = import.meta.env.VITE_BACKEND_URL;
+    console.log('Initializing socket connection with URL:', backendUrl);
+    const newSocket = io(backendUrl, {
       transports: ['websocket', 'polling'],
-      withCredentials: true
+      withCredentials: true,
+      reconnectionAttempts: 5,
+      reconnectionDelay: 1000,
+    });
+    
+    newSocket.on('connect_error', (err) => {
+      console.error('❌ Socket connection error:', err.message);
+    });
+
+    newSocket.on('reconnect_attempt', (attemptNumber) => {
+      console.log(`Attempting to reconnect... (Attempt ${attemptNumber})`);
+    });
+
+    newSocket.on('reconnect_error', (err) => {
+      console.error('❌ Reconnection error:', err.message);
+    });
+
+    newSocket.on('reconnect_failed', () => {
+      console.error('❌ Reconnection failed. Please check the server status and network connection.');
     });
 
     newSocket.on('user-info', (userInfo) => {
