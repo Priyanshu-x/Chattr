@@ -11,7 +11,6 @@ const UserSchema = new mongoose.Schema({
 	ip: { type: String }
 });
 
-UserSchema.index({ username: 1 });
 UserSchema.index({ ip: 1 });
 
 UserSchema.pre('save', async function (next) {

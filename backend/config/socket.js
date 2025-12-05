@@ -29,18 +29,26 @@ const initializeSocket = (server) => {
     // Handle user joining
     socket.on('join-chat', async (userData) => {
       try {
-        // Get IP address
+        logger.info(`Attempting to join chat for socket ID: ${socket.id} with data: ${JSON.stringify(userData)}`);
+        
         const ip = getIp(socket.handshake);
-        // Check if IP is blocked
+        logger.debug(`User IP: ${ip}`);
+
         const blocked = await BlockedIP.findOne({ ip });
         if (blocked) {
+          logger.warn(`Blocked IP ${ip} attempted to join chat.`);
           socket.emit('error', { message: 'You are blocked from this chat.' });
-          socket.disconnect();
-          return; // Exit early if blocked
+          socket.disconnect(true); // Force disconnect
+          return;
         }
-        // Check if user already exists (reconnection)
+
         let user = await User.findOne({ socketId: socket.id });
-        if (!user) {
+        if (user) {
+          logger.info(`Existing user reconnected: ${user.username}`);
+          user.lastActive = new Date();
+          await user.save();
+        } else {
+          logger.info(`Creating new user: ${userData.username}`);
           user = new User({
             socketId: socket.id,
             username: userData.username,
@@ -48,32 +56,28 @@ const initializeSocket = (server) => {
             joinedAt: new Date(),
             lastActive: new Date(),
             ip: ip,
-            // For anonymous users, password is not required.
-            // If a password field is strictly necessary in the User model,
-            // consider making it optional or handling it differently for anonymous users.
-            // For now, we'll omit it as it's not used for anonymous authentication.
           });
           await user.save();
+          logger.info(`New user ${user.username} saved to DB.`);
         }
+
         activeUsers.set(socket.id, user);
-        // Join a room (for future private messaging feature)
         socket.join('public-chat');
-        // Broadcast user joined
+        
         socket.broadcast.emit('user-joined', {
           username: user.username,
           avatar: user.avatar,
           id: user._id
         });
-        // Send current online users
+
         const onlineUsers = Array.from(activeUsers.values()).map(u => ({
           username: u.username,
           avatar: u.avatar,
           id: u._id
         }));
-        
         io.emit('online-users', onlineUsers);
+        logger.debug(`Emitted online users: ${onlineUsers.length}`);
 
-        // Send user info to the joining user
         socket.emit('user-info', {
           id: user._id,
           username: user.username,
@@ -82,8 +86,8 @@ const initializeSocket = (server) => {
           lastActive: user.lastActive,
           messageCount: user.messageCount
         });
+        logger.debug(`Emitted user info for ${user.username}`);
 
-        // Send recent messages
         const recentMessages = await Message.find()
           .sort({ createdAt: -1 })
           .limit(50)
@@ -91,11 +95,13 @@ const initializeSocket = (server) => {
           .populate('reactions.user', 'username');
         
         socket.emit('recent-messages', recentMessages.reverse());
+        logger.debug(`Emitted ${recentMessages.length} recent messages.`);
 
-        logger.info(`User ${user.username} joined the chat`);
+        logger.info(`User ${user.username} (${user._id}) successfully joined the chat.`);
       } catch (error) {
-        logger.error('Error handling user join:', error);
+        logger.error(`Error handling user join for socket ID ${socket.id}:`, error);
         socket.emit('error', { message: error.message || 'Failed to join chat' });
+        socket.disconnect(true); // Force disconnect on critical errors
       }
     });
 
