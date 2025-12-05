@@ -4,6 +4,7 @@ const logger = require('../utils/logger');
 
 const connectDB = async () => {
   try {
+logger.info('Attempting to connect to MongoDB with URI:', process.env.MONGODB_URI);
     const conn = await mongoose.connect(process.env.MONGODB_URI, {
       serverSelectionTimeoutMS: 5000, // Keep trying to send operations for 5 seconds
       socketTimeoutMS: 45000, // Close sockets after 45 seconds of inactivity
@@ -39,6 +40,7 @@ const connectDB = async () => {
 
   } catch (error) {
     logger.error('Database connection failed:', error.message);
+    logger.error('Full database connection error details:', error);
     process.exit(1);
   }
 };
