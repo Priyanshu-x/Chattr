@@ -3,25 +3,23 @@ const express = require('express');
 const http = require('http');
 const { initializeSocket } = require('./config/socket');
 const cors = require('cors');
-const mongoose = require('mongoose');
 const path = require('path');
 require('dotenv').config();
 const errorHandler = require('./middleware/errorHandler');
 const logger = require('./utils/logger');
+const connectDB = require('./config/database'); // Import connectDB
 
 const app = express();
 const server = http.createServer(app);
 initializeSocket(server);
 
+// Connect to MongoDB
+connectDB(); // Call connectDB
+
 // Middleware
 app.use(cors());
 app.use(express.json());
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
-
-// MongoDB Connection
-mongoose.connect(process.env.MONGODB_URI, {
-  // useNewUrlParser and useUnifiedTopology are no longer needed in Mongoose 6+
-});
 
 // Models
 const Message = require('./models/Message');
