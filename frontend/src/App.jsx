@@ -5,6 +5,7 @@ import { ThemeProvider } from './context/ThemeContext';
 import ChatRoom from './components/chat/ChatRoom';
 import AdminLogin from './components/admin/AdminLogin';
 import AdminDashboard from './components/admin/AdminDashboard';
+import AdminProtectedRoute from './components/admin/AdminProtectedRoute'; // Import the protected route
 
 function App() {
   return (
@@ -15,7 +16,9 @@ function App() {
             <Routes>
               <Route path="/" element={<ChatRoom />} />
               <Route path="/admin" element={<AdminLogin />} />
-              <Route path="/admin/dashboard" element={<AdminDashboard />} />
+              <Route path="/admin/dashboard" element={<AdminProtectedRoute />}>
+                <Route index element={<AdminDashboard />} />
+              </Route>
             </Routes>
           </div>
         </Router>

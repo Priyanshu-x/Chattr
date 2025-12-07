@@ -6,7 +6,7 @@ const AppError = require('../utils/AppError');
 
 const adminAuth = async (req, res, next) => {
   try {
-    const token = req.header('Authorization')?.replace('Bearer ', '');
+    const token = req.cookies.adminToken; // Get token from HttpOnly cookie
     
     if (!token) {
       throw new AppError('Access denied. No admin token provided.', 401);
@@ -32,12 +32,12 @@ const adminAuth = async (req, res, next) => {
     next();
   } catch (error) {
     if (error.name === 'TokenExpiredError') {
-      throw new AppError('Admin token expired. Please login again.', 401);
+      next(new AppError('Admin token expired. Please login again.', 401));
+    } else if (error.name === 'JsonWebTokenError') {
+      next(new AppError('Invalid admin token', 401));
+    } else {
+      next(error instanceof AppError ? error : new AppError(error.message, error.statusCode || 500));
     }
-    if (error.name === 'JsonWebTokenError') {
-      throw new AppError('Invalid admin token', 401);
-    }
-    next(error);
   }
 };
 

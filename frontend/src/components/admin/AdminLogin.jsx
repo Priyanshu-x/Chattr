@@ -19,9 +19,7 @@ const AdminLogin = () => {
     try {
   const response = await api.post('/api/admin/login', credentials);
       
-      // Store token
-      localStorage.setItem('adminToken', response.data.token);
-      localStorage.setItem('adminUser', JSON.stringify(response.data.admin));
+      // Token is now set as an HttpOnly cookie by the backend, no need to store in localStorage
       
       navigate('/admin/dashboard');
     } catch (error) {

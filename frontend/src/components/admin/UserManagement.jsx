@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { Ban, UserX, MoreVertical, ShieldOff, Shield } from 'lucide-react';
 import api from '../../utils/api';
+import DOMPurify from 'dompurify'; // Import DOMPurify
 
 const UserManagement = () => {
   const [users, setUsers] = useState([]);
@@ -139,16 +140,17 @@ const UserManagement = () => {
                 </td>
                   <div className="flex items-center space-x-3">
                     <img
-                      src={user.avatar}
-                      alt={user.username}
+                      src={DOMPurify.sanitize(user.avatar)}
+                      alt={DOMPurify.sanitize(user.username)}
                       className="w-10 h-10 rounded-full"
                     />
                     <div>
-                      <p className="font-medium text-gray-900 dark:text-white">
-                        {user.username}
-                      </p>
+                      <p
+                        className="font-medium text-gray-900 dark:text-white"
+                        dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(user.username) }}
+                      />
                       <p className="text-xs text-gray-500 dark:text-gray-400">
-                        ID: {user._id.slice(-8)}
+                        ID: {DOMPurify.sanitize(user._id.slice(-8))}
                       </p>
                     </div>
                   </div>

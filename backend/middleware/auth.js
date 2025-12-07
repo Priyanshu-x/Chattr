@@ -4,38 +4,39 @@ const User = require('../models/User');
 const getIp = require('./getIp');
 const logger = require('../utils/logger');
 const AppError = require('../utils/AppError');
+const Joi = require('joi'); // Added Joi for validateObjectId
 
 // Basic authentication middleware for regular users (if needed)
 const authenticateUser = async (req, res, next) => {
   try {
-    const token = req.header('Authorization')?.replace('Bearer ', '');
+    const token = req.cookies.token; // Get token from HttpOnly cookie
     
     if (!token) {
-      throw new Error('Access denied. No token provided.', 401);
+      throw new AppError('Access denied. No token provided.', 401);
     }
     
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     const user = await User.findById(decoded.userId);
     
     if (!user) {
-      throw new Error('Invalid token. User not found.', 401);
+      throw new AppError('Invalid token. User not found.', 401);
     }
     
     // Check if user is banned
     if (user.isBanned && user.bannedUntil && user.bannedUntil > new Date()) {
-      throw new Error('User is banned', 403, { bannedUntil: user.bannedUntil, reason: user.banReason });
+      throw new AppError('User is banned', 403, { bannedUntil: user.bannedUntil, reason: user.banReason });
     }
     
     req.user = user;
     next();
   } catch (error) {
     if (error.name === 'TokenExpiredError') {
-      throw new Error('Token expired', 401);
+      next(new AppError('Token expired', 401));
+    } else if (error.name === 'JsonWebTokenError') {
+      next(new AppError('Invalid token', 401));
+    } else {
+      next(error instanceof AppError ? error : new AppError(error.message, error.statusCode || 500));
     }
-    if (error.name === 'JsonWebTokenError') {
-      throw new Error('Invalid token', 401);
-    }
-    next(error);
   }
 };
 
@@ -61,7 +62,7 @@ const rateLimitMiddleware = (maxRequests = 10, windowMs = 60000) => {
     }
     
     if (userRequests.count >= maxRequests) {
-      throw new Error('Too many requests. Please try again later.', 429, { resetTime: userRequests.resetTime });
+      throw new AppError('Too many requests. Please try again later.', 429, { resetTime: userRequests.resetTime });
     }
     
     userRequests.count++;
@@ -70,11 +71,21 @@ const rateLimitMiddleware = (maxRequests = 10, windowMs = 60000) => {
 };
 
 // Input validation middleware
-const validateInput = (schema) => {
+const validateInput = (schema, property = 'body') => {
   return (req, res, next) => {
-    const { error } = schema.validate(req.body);
+    const { error } = schema.validate(req[property]);
     if (error) {
-      throw new Error('Validation failed', 400, { details: error.details[0].message });
+      throw new AppError('Validation failed', 400, { details: error.details.message });
+    }
+    next();
+  };
+};
+
+const validateObjectId = (paramName) => {
+  return (req, res, next) => {
+    const { error } = Joi.string().hex().length(24).validate(req.params[paramName]);
+    if (error) {
+      throw new AppError(`Invalid ${paramName} ID`, 400);
     }
     next();
   };
@@ -84,17 +95,17 @@ const validateInput = (schema) => {
 const validateFileUpload = (allowedTypes, maxSize = 10 * 1024 * 1024) => {
   return (req, res, next) => {
     if (!req.file) {
-      throw new Error('No file uploaded', 400);
+      throw new AppError('No file uploaded', 400);
     }
     
     // Check file type
     if (!allowedTypes.includes(req.file.mimetype)) {
-      throw new Error('Invalid file type', 400, { allowedTypes });
+      throw new AppError('Invalid file type', 400, { allowedTypes });
     }
     
     // Check file size
     if (req.file.size > maxSize) {
-      throw new Error('File too large', 400, { maxSize: `${maxSize / (1024 * 1024)}MB` });
+      throw new AppError('File too large', 400, { maxSize: `${maxSize / (1024 * 1024)}MB` });
     }
     
     next();
@@ -114,7 +125,7 @@ const corsOptions = {
     if (!origin || allowedOrigins.includes(origin)) {
       callback(null, true);
     } else {
-      callback(new Error('Not allowed by CORS'));
+      callback(new AppError('Not allowed by CORS', 403));
     }
   },
   credentials: true,
@@ -125,6 +136,7 @@ module.exports = {
   authenticateUser,
   rateLimitMiddleware,
   validateInput,
+  validateObjectId,
   validateFileUpload,
   corsOptions
 };

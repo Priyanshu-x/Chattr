@@ -4,12 +4,12 @@ const logger = require('../utils/logger');
 
 const connectDB = async () => {
   try {
-logger.info('Attempting to connect to MongoDB with URI:', process.env.MONGODB_URI);
+    logger.info(`Attempting to connect to MongoDB with URI: ${process.env.MONGODB_URI}`);
     const conn = await mongoose.connect(process.env.MONGODB_URI, {
-      serverSelectionTimeoutMS: 5000, // Keep trying to send operations for 5 seconds
-      socketTimeoutMS: 45000, // Close sockets after 45 seconds of inactivity
-      family: 4, // Use IPv4, skip trying IPv6
-      autoIndex: true, // Ensure indexes are created, useful for dev
+      serverSelectionTimeoutMS: 5000,
+      socketTimeoutMS: 45000,
+      family: 4,
+      autoIndex: process.env.NODE_ENV !== 'production', // Disable autoIndex in production
     });
 
     logger.info(`MongoDB Connected: ${conn.connection.host}`);

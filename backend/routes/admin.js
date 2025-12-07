@@ -6,31 +6,20 @@ const Message = require('../models/Message');
 const User = require('../models/User');
 const { adminAuth } = require('../middleware/adminAuth');
 const router = express.Router();
-const { validateInput } = require('../middleware/auth');
-const { banUserSchema, announcementSchema } = require('../utils/validationSchemas');
+const { validateInput, validateObjectId, rateLimitMiddleware } = require('../middleware/auth');
+const { adminLoginSchema, banUserSchema, announcementSchema } = require('../utils/validationSchemas');
 const logger = require('../utils/logger');
 
 // Admin login
-router.post('/login', async (req, res, next) => {
+router.post('/login', rateLimitMiddleware(5, 60000), validateInput(adminLoginSchema), async (req, res, next) => {
   try {
     const { username, password } = req.body;
     logger.info(`Admin login attempt for username: ${username}`);
     
     let admin = await AdminUser.findOne({ username });
     if (!admin) {
-      logger.warn(`Admin user ${username} not found. Attempting to create default.`);
-      // Create default admin if doesn't exist
-      if (username === process.env.ADMIN_USERNAME) {
-        admin = new AdminUser({
-          username: process.env.ADMIN_USERNAME,
-          password: process.env.ADMIN_PASSWORD
-        });
-        await admin.save();
-        logger.info(`Default admin user ${username} created.`);
-      } else {
-        logger.error(`Invalid credentials for ${username}: Admin user not found and not default.`);
-        throw new Error('Invalid credentials', 401);
-      }
+      logger.warn(`Admin user ${username} not found.`);
+      throw new Error('Invalid credentials', 401);
     }
 
     const isValid = await admin.comparePassword(password);
@@ -62,6 +51,12 @@ router.post('/login', async (req, res, next) => {
     logger.error(`Admin login error for ${req.body.username}: ${error.message}`);
     next(error);
   }
+});
+
+// Admin logout
+router.post('/logout', adminAuth, (req, res) => {
+  res.clearCookie('adminToken', { path: '/' });
+  res.json({ message: 'Logged out successfully' });
 });
 
 // Get admin stats
@@ -97,7 +92,7 @@ router.get('/users', adminAuth, async (req, res) => {
 });
 
 // Ban user
-router.post('/users/:userId/ban', adminAuth, validateInput(banUserSchema), async (req, res, next) => {
+router.post('/users/:userId/ban', adminAuth, validateObjectId('userId'), validateInput(banUserSchema), async (req, res, next) => {
   try {
     const { userId } = req.params;
     const { duration } = req.body; // hours
@@ -126,7 +121,7 @@ router.post('/users/:userId/ban', adminAuth, validateInput(banUserSchema), async
 });
 
 // Kick user
-router.post('/users/:userId/kick', adminAuth, async (req, res) => {
+router.post('/users/:userId/kick', adminAuth, validateObjectId('userId'), async (req, res, next) => {
   try {
     const { userId } = req.params;
     
@@ -152,7 +147,7 @@ router.post('/users/:userId/kick', adminAuth, async (req, res) => {
 });
 
 // Delete message
-router.delete('/messages/:messageId', adminAuth, async (req, res) => {
+router.delete('/messages/:messageId', adminAuth, validateObjectId('messageId'), async (req, res, next) => {
   try {
     const { messageId } = req.params;
     
@@ -173,7 +168,7 @@ router.delete('/messages/:messageId', adminAuth, async (req, res) => {
 });
 
 // Toggle pin message
-router.patch('/messages/:messageId/pin', adminAuth, async (req, res) => {
+router.patch('/messages/:messageId/pin', adminAuth, validateObjectId('messageId'), async (req, res, next) => {
   try {
     const { messageId } = req.params;
     

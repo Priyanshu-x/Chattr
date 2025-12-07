@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import api from '../../utils/api';
 import { Trash2 } from 'lucide-react';
+import DOMPurify from 'dompurify'; // Import DOMPurify
 
 const IpBlockManagement = () => {
   const [blockedIps, setBlockedIps] = useState([]);
@@ -80,7 +81,10 @@ const IpBlockManagement = () => {
               <tr key={ipObj.ip} className="bg-white border-b dark:bg-gray-800 dark:border-gray-700">
                 <td className="px-6 py-4 font-mono">{ipObj.ip}</td>
                 <td className="px-6 py-4">{ipObj.blockedAt ? new Date(ipObj.blockedAt).toLocaleString() : '-'}</td>
-                <td className="px-6 py-4">{ipObj.reason || '-'}</td>
+                <td
+                  className="px-6 py-4"
+                  dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(ipObj.reason || '-') }}
+                />
                 <td className="px-6 py-4">
                   <button
                     onClick={() => handleUnblock(ipObj.ip)}

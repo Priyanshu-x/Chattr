@@ -4,18 +4,19 @@ import { useNavigate } from 'react-router-dom';
 import UserManagement from './UserManagement';
 import AdminStats from './AdminStats';
 import IpBlockManagement from './IpBlockManagement';
-import { 
-  BarChart3, 
-  Users, 
-  MessageSquare, 
-  Settings, 
-  LogOut, 
+import {
+  BarChart3,
+  Users,
+  MessageSquare,
+  Settings,
+  LogOut,
   Shield,
   Send,
   Pin,
   Trash2
 } from 'lucide-react';
 import api from '../../utils/api';
+import DOMPurify from 'dompurify'; // Import DOMPurify
 
 const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState('stats');
@@ -25,25 +26,28 @@ const AdminDashboard = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const token = localStorage.getItem('adminToken');
     const user = localStorage.getItem('adminUser');
     
-    if (!token || !user) {
+    if (!user) {
       navigate('/admin');
       return;
     }
     
     setAdminUser(JSON.parse(user));
-    
-    // Set axios default header
-  api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+    // No need to set Authorization header, as token is now in HttpOnly cookie and sent automatically with `withCredentials`
   }, [navigate]);
 
-  const handleLogout = () => {
-    localStorage.removeItem('adminToken');
-    localStorage.removeItem('adminUser');
-    delete axios.defaults.headers.common['Authorization'];
-    navigate('/admin');
+  const handleLogout = async () => {
+    try {
+      await api.post('/api/admin/logout'); // Call backend logout endpoint
+      localStorage.removeItem('adminUser');
+      navigate('/admin');
+    } catch (error) {
+      console.error('Logout failed:', error);
+      // Even if logout fails on server, clear client-side user data
+      localStorage.removeItem('adminUser');
+      navigate('/admin');
+    }
   };
 
   const sendAnnouncement = async () => {
@@ -94,8 +98,10 @@ const AdminDashboard = () => {
                 <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
                   Admin Dashboard
                 </h1>
-                <p className="text-sm text-gray-600 dark:text-gray-400">
-                  Welcome back, {adminUser.username}
+                <p
+                  className="text-sm text-gray-600 dark:text-gray-400"
+                >
+                  Welcome back, {DOMPurify.sanitize(adminUser.username)}
                 </p>
               </div>
             </div>
@@ -256,13 +262,16 @@ const MessageManagement = () => {
                 <div className="flex-1">
                   <div className="flex items-center space-x-3 mb-2">
                     <img
-                      src={message.user.avatar}
-                      alt={message.user.username}
+                      src={DOMPurify.sanitize(message.user.avatar)}
+                      alt={DOMPurify.sanitize(message.user.username)}
                       className="w-8 h-8 rounded-full"
                     />
                     <div>
-                      <p className="font-medium text-gray-900 dark:text-white">
-                        {message.user.username}
+                      <p
+                        className="font-medium text-gray-900 dark:text-white"
+                        className="font-medium text-gray-900 dark:text-white"
+                      >
+                        {DOMPurify.sanitize(message.user.username)}
                       </p>
                       <p className="text-xs text-gray-500 dark:text-gray-400">
                         {new Date(message.createdAt).toLocaleString()}
@@ -274,8 +283,11 @@ const MessageManagement = () => {
                       </span>
                     )}
                   </div>
-                  <p className="text-gray-700 dark:text-gray-300 break-words">
-                    {message.content || `[${message.type} message]`}
+                  <p
+                    className="text-gray-700 dark:text-gray-300 break-words"
+                    className="text-gray-700 dark:text-gray-300 break-words"
+                  >
+                    {DOMPurify.sanitize(message.content || `[${message.type} message]`)}
                   </p>
                 </div>
                 <div className="flex space-x-2 ml-4">

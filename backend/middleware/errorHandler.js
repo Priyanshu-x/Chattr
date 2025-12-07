@@ -11,8 +11,8 @@ const errorHandler = (err, req, res, next) => {
   }
 
   res.status(statusCode).json({
-    error: message,
-    details: err.errors || undefined // Include validation errors if present
+    error: process.env.NODE_ENV === 'production' && statusCode === 500 ? 'An unexpected error occurred.' : message,
+    details: process.env.NODE_ENV === 'production' && statusCode === 500 ? undefined : err.details || undefined // Only include details in non-production or for non-500 errors
   });
 };
 

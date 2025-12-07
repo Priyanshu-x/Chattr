@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { useSocket } from '../../hooks/useSocket';
 import { formatTime } from '../../utils/helpers';
 import { Pin, MoreVertical, Copy } from 'lucide-react';
+import DOMPurify from 'dompurify'; // Import DOMPurify
 
 const MessageBubble = ({ message, isOwnMessage, showAvatar }) => {
   const { toggleReaction } = useSocket();
@@ -24,9 +25,10 @@ const MessageBubble = ({ message, isOwnMessage, showAvatar }) => {
     switch (message.type) {
       case 'text':
         return (
-          <p className="text-sm break-words whitespace-pre-wrap">
-            {message.content}
-          </p>
+          <p
+            className="text-sm break-words whitespace-pre-wrap"
+            dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(message.content) }}
+          />
         );
       case 'image':
         return (
@@ -35,12 +37,13 @@ const MessageBubble = ({ message, isOwnMessage, showAvatar }) => {
               src={`${import.meta.env.VITE_BACKEND_URL}${message.fileUrl}`}
               alt="Shared image"
               className="max-w-full h-auto rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
-              onClick={() => window.open(`${import.meta.env.VITE_BACKEND_URL}${message.fileUrl}`, '_blank')}
+              onClick={() => window.open(`${import.meta.env.VITE_BACKEND_URL}${message.fileUrl}`, '_blank', 'noopener,noreferrer')}
             />
             {message.content && (
-              <p className="text-sm mt-2 break-words whitespace-pre-wrap">
-                {message.content}
-              </p>
+              <p
+                className="text-sm mt-2 break-words whitespace-pre-wrap"
+                dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(message.content) }}
+              />
             )}
           </div>
         );
@@ -75,9 +78,10 @@ const MessageBubble = ({ message, isOwnMessage, showAvatar }) => {
                 Your browser does not support the video tag.
               </video>
               {message.content && (
-                <p className="text-sm mt-2 break-words whitespace-pre-wrap">
-                  {message.content}
-                </p>
+                <p
+                  className="text-sm mt-2 break-words whitespace-pre-wrap"
+                  dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(message.content) }}
+                />
               )}
             </div>
           );
@@ -88,12 +92,13 @@ const MessageBubble = ({ message, isOwnMessage, showAvatar }) => {
                 src={`${import.meta.env.VITE_BACKEND_URL}${message.fileUrl}`}
                 alt="Shared image"
                 className="max-w-full h-auto rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
-                onClick={() => window.open(`${import.meta.env.VITE_BACKEND_URL}${message.fileUrl}`, '_blank')}
+                onClick={() => window.open(`${import.meta.env.VITE_BACKEND_URL}${message.fileUrl}`, '_blank', 'noopener,noreferrer')}
               />
               {message.content && (
-                <p className="text-sm mt-2 break-words whitespace-pre-wrap">
-                  {message.content}
-                </p>
+                <p
+                  className="text-sm mt-2 break-words whitespace-pre-wrap"
+                  dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(message.content) }}
+                />
               )}
             </div>
           );
@@ -128,8 +133,8 @@ const MessageBubble = ({ message, isOwnMessage, showAvatar }) => {
       {/* Avatar */}
       {showAvatar && !isOwnMessage && (
         <img
-          src={message.user.avatar}
-          alt={message.user.username}
+          src={DOMPurify.sanitize(message.user.avatar)}
+          alt={DOMPurify.sanitize(message.user.username)}
           className="w-8 h-8 rounded-full flex-shrink-0"
         />
       )}
@@ -138,9 +143,10 @@ const MessageBubble = ({ message, isOwnMessage, showAvatar }) => {
         {/* Username and time */}
         {showAvatar && (
           <div className={`flex items-center space-x-2 mb-1 ${isOwnMessage ? 'flex-row-reverse space-x-reverse' : ''}`}>
-            <span className="text-xs font-medium text-gray-700 dark:text-gray-300">
-              {isOwnMessage ? 'You' : message.user.username}
-            </span>
+            <span
+              className="text-xs font-medium text-gray-700 dark:text-gray-300"
+              dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(isOwnMessage ? 'You' : message.user.username) }}
+            />
             <span className="text-xs text-gray-500 dark:text-gray-400">
               {formatTime(message.createdAt)}
             </span>
@@ -225,9 +231,9 @@ const MessageBubble = ({ message, isOwnMessage, showAvatar }) => {
                   key={emoji}
                   onClick={() => handleReaction(emoji)}
                   className="flex items-center space-x-1 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-full px-2 py-1 text-xs transition-colors"
-                  title={`${reactionList.map(r => r.user.username).join(', ')} reacted with ${emoji}`}
+                  title={DOMPurify.sanitize(`${reactionList.map(r => r.user.username).join(', ')} reacted with ${emoji}`)}
                 >
-                  <span>{emoji}</span>
+                  <span dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(emoji) }} />
                   <span className="text-gray-600 dark:text-gray-400">{reactionList.length}</span>
                 </button>
               ))}

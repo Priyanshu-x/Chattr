@@ -4,7 +4,7 @@ const User = require('../models/User');
 const router = express.Router();
 const { register, login, getProfile, updateProfile } = require('../controllers/userController');
 const { authenticateUser } = require('../middleware/auth');
-const { validateInput } = require('../middleware/auth');
+const { validateInput, rateLimitMiddleware } = require('../middleware/auth');
 const { registerSchema, loginSchema, updateProfileSchema } = require('../utils/validationSchemas');
 
 // Generate random username
@@ -36,9 +36,15 @@ router.get('/avatar', (req, res) => {
 });
 
 // User authentication routes
-router.post('/register', validateInput(registerSchema), register);
-router.post('/login', validateInput(loginSchema), login);
+router.post('/register', rateLimitMiddleware(5, 60000), validateInput(registerSchema), register); // 5 attempts per minute
+router.post('/login', rateLimitMiddleware(5, 60000), validateInput(loginSchema), login); // 5 attempts per minute
 router.get('/profile', authenticateUser, getProfile);
 router.patch('/profile', authenticateUser, validateInput(updateProfileSchema), updateProfile);
+
+// User logout
+router.post('/logout', authenticateUser, (req, res) => {
+  res.clearCookie('token', { path: '/' });
+  res.json({ message: 'Logged out successfully' });
+});
 
 module.exports = router;

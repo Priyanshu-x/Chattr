@@ -100,7 +100,10 @@ const initializeSocket = (server) => {
         logger.info(`User ${user.username} (${user._id}) successfully joined the chat.`);
       } catch (error) {
         logger.error(`Error handling user join for socket ID ${socket.id}:`, error);
-        socket.emit('error', { message: error.message || 'Failed to join chat' });
+        const errorMessage = process.env.NODE_ENV === 'production'
+          ? 'Failed to join chat.'
+          : error.message || 'Failed to join chat';
+        socket.emit('error', { message: errorMessage });
         socket.disconnect(true); // Force disconnect on critical errors
       }
     });
@@ -110,7 +113,8 @@ const initializeSocket = (server) => {
       try {
         const user = activeUsers.get(socket.id);
         if (!user) {
-          socket.emit('error', { message: 'User not found' });
+          socket.emit('error', { message: 'User session expired or not found. Please rejoin.' });
+          socket.disconnect(true); // Force disconnect
           return; // Exit early if user not found
         }
 
@@ -121,7 +125,7 @@ const initializeSocket = (server) => {
         });
 
         if (recentMessages >= 10) {
-          socket.emit('error', { message: 'Rate limit exceeded' });
+          socket.emit('error', { message: 'You are sending messages too quickly. Please slow down.' });
           return; // Exit early if rate limit exceeded
         }
 
@@ -160,7 +164,10 @@ const initializeSocket = (server) => {
         logger.info(`Message from ${user.username}: ${message.type}`);
       } catch (error) {
         logger.error('Error handling message:', error);
-        socket.emit('error', { message: error.message || 'Failed to send message' });
+        const errorMessage = process.env.NODE_ENV === 'production'
+          ? 'Failed to send message.'
+          : error.message || 'Failed to send message';
+        socket.emit('error', { message: errorMessage });
       }
     });
 
@@ -176,7 +183,7 @@ const initializeSocket = (server) => {
 
         const message = await Message.findById(messageId);
         if (!message) {
-          socket.emit('error', { message: 'Message not found' });
+          socket.emit('error', { message: 'Message not found for reaction.' });
           return; // Exit early if message not found
         }
 
@@ -202,7 +209,10 @@ const initializeSocket = (server) => {
         });
       } catch (error) {
         logger.error('Error handling reaction:', error);
-        socket.emit('error', { message: error.message || 'Failed to toggle reaction' });
+        const errorMessage = process.env.NODE_ENV === 'production'
+          ? 'Failed to toggle reaction.'
+          : error.message || 'Failed to toggle reaction';
+        socket.emit('error', { message: errorMessage });
       }
     });
 
@@ -231,8 +241,13 @@ const initializeSocket = (server) => {
       try {
         const user = activeUsers.get(socket.id);
         if (user) {
-          await User.findByIdAndDelete(user._id);
-          activeUsers.delete(socket.id);
+          // Instead of deleting the user, clear their socketId and update lastActive status
+          // This allows for persistent users that can rejoin.
+          user.socketId = undefined; // Clear socketId
+          user.lastActive = new Date(); // Update last active timestamp
+          await user.save(); // Save the updated user state
+
+          activeUsers.delete(socket.id); // Remove from active users map
           
           socket.broadcast.emit('user-left', {
             username: user.username,

@@ -5,9 +5,12 @@ const { initializeSocket } = require('./config/socket');
 const cors = require('cors');
 const path = require('path');
 require('dotenv').config();
+const helmet = require('helmet'); // Import helmet for security headers
+const cookieParser = require('cookie-parser'); // Import cookie-parser
 const errorHandler = require('./middleware/errorHandler');
 const logger = require('./utils/logger');
 const connectDB = require('./config/database'); // Import connectDB
+const { serveUploadedFile } = require('./controllers/chatController'); // Import the new file serving controller
 
 const app = express();
 const server = http.createServer(app);
@@ -17,9 +20,44 @@ initializeSocket(server);
 connectDB(); // Call connectDB
 
 // Middleware
-app.use(cors());
+app.use(helmet()); // Use Helmet for security headers
+
+// HSTS configuration
+app.use(helmet.hsts({
+  maxAge: 31536000, // 1 year in seconds
+  includeSubDomains: true,
+  preload: true
+}));
+
+app.use(cors({
+  origin: process.env.CLIENT_URL || 'http://localhost:5173', // Restrict CORS to specific origin
+  credentials: true, // Allow sending cookies
+}));
 app.use(express.json());
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+app.use(cookieParser()); // Use cookie-parser middleware
+
+// Configure secure cookies (already in adminController, ensuring for all where possible)
+app.use((req, res, next) => {
+  res.cookie = (name, value, options) => {
+    const defaultOptions = {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'Lax',
+      path: '/'
+    };
+    res.setHeader('Set-Cookie', `${name}=${value}; ${Object.entries({ ...defaultOptions, ...options }).map(([key, val]) => {
+      if (val === true) return key;
+      if (val === false) return ''; // Don't include if false
+      return `${key}=${val}`;
+    }).filter(Boolean).join('; ')}`);
+    return res;
+  };
+  next();
+});
+// Removed direct static file serving for uploads, now handled by serveUploadedFile route
+
+// New route for secure file serving
+app.get('/uploads/:filename', serveUploadedFile);
 
 // Models
 const Message = require('./models/Message');
