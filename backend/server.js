@@ -28,11 +28,16 @@ app.use(helmet.hsts({
   includeSubDomains: true,
   preload: true
 }));
-
 app.use(cors({
   origin: process.env.CLIENT_URL || 'http://localhost:5173', // Restrict CORS to specific origin
   credentials: true, // Allow sending cookies
 }));
+app.use(express.json());
+app.use(cookieParser()); // Use cookie-parser middleware
+
+// Add logging after all app.use middleware
+logger.info(`CORS origin set to: ${process.env.CLIENT_URL || 'http://localhost:5173'}`);
+logger.info(`NODE_ENV is: ${process.env.NODE_ENV}`);
 app.use(express.json());
 app.use(cookieParser()); // Use cookie-parser middleware
 
