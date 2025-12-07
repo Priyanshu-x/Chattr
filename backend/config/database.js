@@ -5,6 +5,7 @@ const logger = require('../utils/logger');
 const connectDB = async () => {
   try {
     logger.info(`Attempting to connect to MongoDB with URI: ${process.env.MONGODB_URI}`);
+    logger.info(`MONGODB_URI from environment: ${process.env.MONGODB_URI}`);
     const conn = await mongoose.connect(process.env.MONGODB_URI, {
       serverSelectionTimeoutMS: 5000,
       socketTimeoutMS: 45000,
