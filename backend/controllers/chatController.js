@@ -2,7 +2,8 @@ const Message = require('../models/Message');
 const path = require('path');
 const fs = require('fs');
 const AppError = require('../utils/AppError');
-const xss = require('xss'); // Import xss library
+// xss import removed as it is now handled in service
+const ChatService = require('../services/chatService');
 
 exports.sendMessage = async (req, res, next) => {
 	try {
@@ -14,22 +15,17 @@ exports.sendMessage = async (req, res, next) => {
 			throw new AppError('Authentication required to send messages.', 401);
 		}
 
-		// Sanitize content using xss library before storing
-		const sanitizedContent = content ? xss(content.trim()) : '';
-		// Sanitize fileName as well
-		const sanitizedFileName = fileName ? xss(fileName.trim()) : '';
-
-		const message = new Message({
+		// Use ChatService to create message (handles sanitization)
+		const message = await ChatService.createMessage({
 			user: authenticatedUserId,
-			content: sanitizedContent,
+			content,
 			type,
 			imageUrl,
 			voiceUrl,
 			fileUrl,
-			fileName: sanitizedFileName,
-			expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000)
+			fileName
 		});
-		await message.save();
+
 		res.status(201).json(message);
 	} catch (error) {
 		next(error);

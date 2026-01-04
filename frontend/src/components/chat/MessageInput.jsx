@@ -12,7 +12,7 @@ const MessageInput = () => {
   const [selectedFile, setSelectedFile] = useState(null);
   const [filePreview, setFilePreview] = useState(null);
   const [isUploading, setIsUploading] = useState(false);
-  
+
   const textareaRef = useRef(null);
   const fileInputRef = useRef(null);
   const mediaRecorderRef = useRef(null);
@@ -30,7 +30,7 @@ const MessageInput = () => {
 
   const handleInputChange = (e) => {
     setMessage(e.target.value);
-    
+
     // Handle typing indicators
     startTyping();
     clearTimeout(typingTimeoutRef.current);
@@ -209,7 +209,7 @@ const MessageInput = () => {
               {filePreview ? (
                 <img src={filePreview} alt="Preview" className="w-12 h-12 object-cover rounded" />
               ) : (
-                <div className="w-12 h-12 bg-blue-500 rounded flex items-center justify-center">
+                <div className="w-12 h-12 bg-gray-800 dark:bg-gray-600 rounded flex items-center justify-center">
                   <Mic className="h-6 w-6 text-white" />
                 </div>
               )}
@@ -238,7 +238,7 @@ const MessageInput = () => {
           {/* Image Upload */}
           <button
             onClick={() => fileInputRef.current?.click()}
-            className="p-2 text-gray-500 hover:text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-full transition-colors"
+            className="p-2 text-gray-500 hover:text-primary-500 hover:bg-gray-100 dark:hover:bg-gray-700/50 rounded-full transition-colors"
             disabled={isUploading}
           >
             <Image className="h-5 w-5" />
@@ -247,11 +247,10 @@ const MessageInput = () => {
           {/* Voice Recording */}
           <button
             onClick={isRecording ? stopRecording : startRecording}
-            className={`p-2 rounded-full transition-colors ${
-              isRecording 
-                ? 'text-red-500 bg-red-50 dark:bg-red-900/20' 
+            className={`p-2 rounded-full transition-colors ${isRecording
+                ? 'text-red-500 bg-red-50 dark:bg-red-900/20'
                 : 'text-gray-500 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20'
-            }`}
+              }`}
           >
             {isRecording ? <MicOff className="h-5 w-5" /> : <Mic className="h-5 w-5" />}
           </button>
@@ -274,10 +273,10 @@ const MessageInput = () => {
             onKeyPress={handleKeyPress}
             placeholder={isRecording ? "Recording..." : "Type a message..."}
             disabled={isRecording || isUploading}
-            className="w-full resize-none bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 border border-gray-300 dark:border-gray-600 rounded-2xl px-3 py-2 sm:px-4 sm:py-3 pr-10 sm:pr-12 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+            className="w-full resize-none bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 border border-gray-300 dark:border-gray-600 rounded-2xl px-3 py-2 sm:px-4 sm:py-3 pr-10 sm:pr-12 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-colors"
             rows={1}
           />
-          
+
           {isRecording && (
             <div className="absolute right-2 sm:right-3 top-1/2 transform -translate-y-1/2">
               <div className="flex space-x-1">
@@ -293,7 +292,7 @@ const MessageInput = () => {
         <button
           onClick={handleSendMessage}
           disabled={(!message.trim() && !selectedFile) || isUploading}
-          className="p-2 sm:p-3 bg-blue-500 text-white rounded-full hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          className="p-2 sm:p-3 bg-primary-500 text-white rounded-full hover:bg-primary-600 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
         >
           {isUploading ? (
             <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>

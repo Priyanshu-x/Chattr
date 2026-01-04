@@ -6,6 +6,7 @@ const BlockedIP = require('../models/BlockedIP');
 const getIp = require('../middleware/getIp');
 const AppError = require('../utils/AppError');
 const logger = require('../utils/logger');
+const ChatService = require('../services/chatService');
 
 let io;
 const activeUsers = new Map();
@@ -13,8 +14,8 @@ const activeUsers = new Map();
 const initializeSocket = (server) => {
   io = socketIo(server, {
     cors: {
-      origin: process.env.NODE_ENV === 'production' 
-        ? process.env.CLIENT_URL 
+      origin: process.env.NODE_ENV === 'production'
+        ? process.env.CLIENT_URL
         : "http://localhost:5173",
       methods: ["GET", "POST"],
       credentials: true
@@ -30,7 +31,7 @@ const initializeSocket = (server) => {
     socket.on('join-chat', async (userData) => {
       try {
         logger.info(`Attempting to join chat for socket ID: ${socket.id} with data: ${JSON.stringify(userData)}`);
-        
+
         const ip = getIp(socket.handshake);
         logger.debug(`User IP: ${ip}`);
 
@@ -42,28 +43,12 @@ const initializeSocket = (server) => {
           return;
         }
 
-        let user = await User.findOne({ socketId: socket.id });
-        if (user) {
-          logger.info(`Existing user reconnected: ${user.username}`);
-          user.lastActive = new Date();
-          await user.save();
-        } else {
-          logger.info(`Creating new user: ${userData.username}`);
-          user = new User({
-            socketId: socket.id,
-            username: userData.username,
-            avatar: userData.avatar,
-            joinedAt: new Date(),
-            lastActive: new Date(),
-            ip: ip,
-          });
-          await user.save();
-          logger.info(`New user ${user.username} saved to DB.`);
-        }
+        // Use ChatService to handle user creation/updating
+        const user = await ChatService.joinUser(userData, socket.id, ip);
 
         activeUsers.set(socket.id, user);
         socket.join('public-chat');
-        
+
         socket.broadcast.emit('user-joined', {
           username: user.username,
           avatar: user.avatar,
@@ -93,7 +78,7 @@ const initializeSocket = (server) => {
           .limit(50)
           .populate('user', 'username avatar')
           .populate('reactions.user', 'username');
-        
+
         socket.emit('recent-messages', recentMessages.reverse());
         logger.debug(`Emitted ${recentMessages.length} recent messages.`);
 
@@ -118,29 +103,18 @@ const initializeSocket = (server) => {
           return; // Exit early if user not found
         }
 
-        // Rate limiting check
-        const recentMessages = await Message.countDocuments({
-          user: user._id,
-          createdAt: { $gte: new Date(Date.now() - 60000) } // Last minute
-        });
-
-        if (recentMessages >= 10) {
+        // Rate limiting check using Service (In-Memory)
+        if (!ChatService.checkRateLimit(user._id.toString())) {
           socket.emit('error', { message: 'You are sending messages too quickly. Please slow down.' });
-          return; // Exit early if rate limit exceeded
+          return; // Exit early
         }
 
-        const message = new Message({
-          content: messageData.content,
-          type: messageData.type || 'text',
-          user: user._id,
-          fileUrl: messageData.fileUrl,
-          fileName: messageData.fileName,
-          createdAt: new Date(),
-          expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000), // 24 hours
-          reactions: []
+        // Create message using Service (handles sanitization)
+        const message = await ChatService.createMessage({
+          ...messageData,
+          user: user._id
         });
 
-        await message.save();
         await message.populate('user', 'username avatar');
 
         // Update user message count
@@ -187,7 +161,7 @@ const initializeSocket = (server) => {
           return; // Exit early if message not found
         }
 
-        const existingReaction = message.reactions.find(r => 
+        const existingReaction = message.reactions.find(r =>
           r.emoji === emoji && r.user.toString() === user._id.toString()
         );
 
@@ -248,7 +222,7 @@ const initializeSocket = (server) => {
           await user.save(); // Save the updated user state
 
           activeUsers.delete(socket.id); // Remove from active users map
-          
+
           socket.broadcast.emit('user-left', {
             username: user.username,
             id: user._id
@@ -259,7 +233,7 @@ const initializeSocket = (server) => {
             avatar: u.avatar,
             id: u._id
           }));
-          
+
           io.emit('online-users', onlineUsers);
           console.log(`User ${user.username} disconnected`);
         }

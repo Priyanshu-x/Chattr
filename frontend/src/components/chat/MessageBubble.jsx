@@ -50,7 +50,7 @@ const MessageBubble = ({ message, isOwnMessage, showAvatar }) => {
       case 'voice':
         return (
           <div className="flex items-center space-x-3 py-2">
-            <button className="w-10 h-10 bg-blue-500 hover:bg-blue-600 text-white rounded-full flex items-center justify-center">
+            <button className="w-10 h-10 bg-primary-500 hover:bg-primary-600 text-white rounded-full flex items-center justify-center">
               ▶️
             </button>
             <div className="flex-1">
@@ -160,15 +160,15 @@ const MessageBubble = ({ message, isOwnMessage, showAvatar }) => {
         <div className="relative">
           <div
             className={`
-              ${isOwnMessage 
-                ? 'bg-blue-500 text-white rounded-2xl rounded-br-md' 
-                : 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-2xl rounded-bl-md border border-gray-200 dark:border-gray-600'
-              } px-4 py-2 shadow-lg relative group-hover:shadow-xl transition-shadow duration-200
+              ${isOwnMessage
+                ? 'chat-bubble-user'
+                : 'chat-bubble-other'
+              } relative group-hover:shadow-xl transition-shadow duration-200
             `}
             onDoubleClick={() => setShowReactions(!showReactions)}
           >
             {renderMessageContent()}
-            
+
             {/* Message menu */}
             <button
               onClick={() => setShowMenu(!showMenu)}

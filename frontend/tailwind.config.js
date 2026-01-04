@@ -1,3 +1,5 @@
+import colors from 'tailwindcss/colors';
+
 /** @type {import('tailwindcss').Config} */
 export default {
   content: [
@@ -11,11 +13,12 @@ export default {
         'xs': '480px',
       },
       colors: {
+        gray: colors.neutral,
         primary: {
-          50: '#eff6ff',
-          500: '#3b82f6',
-          600: '#2563eb',
-          700: '#1d4ed8',
+          50: '#fafafa',
+          500: '#171717',
+          600: '#0a0a0a',
+          700: '#000000',
         }
       }
     },

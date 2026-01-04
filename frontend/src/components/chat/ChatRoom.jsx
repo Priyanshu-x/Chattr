@@ -5,7 +5,7 @@ import { useTheme } from '../../context/ThemeContext';
 import MessageList from './MessageList';
 import MessageInput from './MessageInput';
 import UserJoin from '../ui/UserJoin';
-import { Users, Sun, Moon, Settings } from 'lucide-react';
+import { Users, Sun, Moon, Settings, X } from 'lucide-react';
 
 const ChatRoom = () => {
   const { user, connected, onlineUsers } = useSocket();
@@ -23,7 +23,7 @@ const ChatRoom = () => {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-500 mx-auto mb-4"></div>
           <p className="text-gray-600 dark:text-gray-400">Connecting to chat server...</p>
           <p className="text-sm text-gray-500 dark:text-gray-500 mt-2">Make sure the backend is running on port 5000</p>
         </div>
@@ -57,7 +57,7 @@ const ChatRoom = () => {
           >
             <Users className="h-5 w-5" />
           </button>
-          
+
           <button
             onClick={toggleTheme}
             className="p-2 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
@@ -66,7 +66,7 @@ const ChatRoom = () => {
           </button>
 
           {user && (
-            <div className="flex items-center space-x-2 px-3 py-1 bg-blue-100 dark:bg-blue-900/20 text-blue-800 dark:text-blue-200 rounded-full">
+            <div className="flex items-center space-x-2 px-3 py-1 bg-gray-100 dark:bg-gray-700/50 text-gray-900 dark:text-gray-100 rounded-full">
               <img src={user.avatar} alt="Avatar" className="w-6 h-6 rounded-full" />
               <span className="text-sm font-medium">{user.username}</span>
             </div>
@@ -77,8 +77,14 @@ const ChatRoom = () => {
       {/* Online Users Sidebar */}
       {showSidebar && (
         <div className={`fixed inset-y-0 right-0 w-64 sm:w-80 bg-white dark:bg-gray-800 border-l border-gray-200 dark:border-gray-700 shadow-lg z-50 flex flex-col transform ${showSidebar ? 'translate-x-0' : 'translate-x-full'} transition-transform duration-300 ease-in-out`}>
-          <div className="p-4 border-b border-gray-200 dark:border-gray-700">
+          <div className="p-4 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
             <h3 className="font-semibold text-gray-900 dark:text-white">Online Users ({onlineUsers.length})</h3>
+            <button
+              onClick={() => setShowSidebar(false)}
+              className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors"
+            >
+              <X className="h-5 w-5 text-gray-500 dark:text-gray-400" />
+            </button>
           </div>
           <div className="p-4 space-y-3">
             {onlineUsers.map((user, index) => (
