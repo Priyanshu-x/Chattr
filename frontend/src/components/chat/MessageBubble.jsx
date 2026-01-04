@@ -170,8 +170,8 @@ const MessageBubble = ({ message, isOwnMessage, showAvatar, onReply }) => {
             {message.replyTo && (
               <div
                 className={`mb-2 p-2 rounded-lg text-xs cursor-pointer border-l-4 opacity-90 ${isOwnMessage
-                    ? 'bg-white/10 border-white/50 text-white'
-                    : 'bg-gray-100 dark:bg-gray-600 border-primary-500 text-gray-800 dark:text-gray-200'
+                  ? 'bg-white/10 border-white/50 text-white dark:text-gray-900 dark:bg-gray-100 dark:border-gray-200'
+                  : 'bg-gray-100 dark:bg-gray-600 border-primary-500 text-gray-800 dark:text-gray-200'
                   }`}
               >
                 <div className="font-bold mb-0.5">
