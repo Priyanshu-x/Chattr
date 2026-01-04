@@ -2,10 +2,10 @@
 import React, { useState } from 'react';
 import { useSocket } from '../../hooks/useSocket';
 import { formatTime } from '../../utils/helpers';
-import { Pin, MoreVertical, Copy } from 'lucide-react';
+import { Pin, MoreVertical, Copy, Reply } from 'lucide-react';
 import DOMPurify from 'dompurify'; // Import DOMPurify
 
-const MessageBubble = ({ message, isOwnMessage, showAvatar }) => {
+const MessageBubble = ({ message, isOwnMessage, showAvatar, onReply }) => {
   const { toggleReaction } = useSocket();
   const [showReactions, setShowReactions] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
@@ -167,6 +167,24 @@ const MessageBubble = ({ message, isOwnMessage, showAvatar }) => {
             `}
             onDoubleClick={() => setShowReactions(!showReactions)}
           >
+            {message.replyTo && (
+              <div
+                className={`mb-2 p-2 rounded-lg text-xs cursor-pointer border-l-4 opacity-90 ${isOwnMessage
+                    ? 'bg-white/10 border-white/50 text-white'
+                    : 'bg-gray-100 dark:bg-gray-600 border-primary-500 text-gray-800 dark:text-gray-200'
+                  }`}
+              >
+                <div className="font-bold mb-0.5">
+                  {message.replyTo.user?.username || 'Unknown'}
+                </div>
+                <div className="truncate max-w-[150px] sm:max-w-[200px]">
+                  {message.replyTo.type === 'text'
+                    ? message.replyTo.content
+                    : `${message.replyTo.type === 'image' ? '📷 ' : message.replyTo.type === 'voice' ? '🎤 ' : '📎 '}${message.replyTo.type === 'image' ? 'Image' : message.replyTo.type === 'voice' ? 'Voice Message' : 'File'}`
+                  }
+                </div>
+              </div>
+            )}
             {renderMessageContent()}
 
             {/* Message menu */}
@@ -179,6 +197,16 @@ const MessageBubble = ({ message, isOwnMessage, showAvatar }) => {
 
             {showMenu && (
               <div className="absolute top-6 right-0 bg-white dark:bg-gray-700 rounded-lg shadow-lg border border-gray-200 dark:border-gray-600 py-1 z-10">
+                <button
+                  onClick={() => {
+                    onReply(message);
+                    setShowMenu(false);
+                  }}
+                  className="flex items-center space-x-2 px-3 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-600 w-full text-left"
+                >
+                  <Reply className="h-4 w-4" />
+                  <span>Reply</span>
+                </button>
                 <button
                   onClick={copyMessage}
                   className="flex items-center space-x-2 px-3 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-600 w-full text-left"

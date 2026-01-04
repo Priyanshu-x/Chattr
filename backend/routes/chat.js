@@ -98,6 +98,11 @@ router.get('/messages', async (req, res) => {
 
     const messages = await Message.find()
       .populate('user', 'username avatar')
+      .populate({
+        path: 'replyTo',
+        select: 'content user type fileUrl fileName',
+        populate: { path: 'user', select: 'username' }
+      })
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(limit);

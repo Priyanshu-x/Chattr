@@ -87,6 +87,11 @@ exports.getMessages = async (req, res, next) => {
 		const skip = (page - 1) * limit;
 		const messages = await Message.find()
 			.populate('user', 'username avatar')
+			.populate({
+				path: 'replyTo',
+				select: 'content user type fileUrl fileName',
+				populate: { path: 'user', select: 'username' }
+			})
 			.sort({ createdAt: -1 })
 			.skip(skip)
 			.limit(limit);

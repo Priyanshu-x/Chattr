@@ -116,6 +116,11 @@ const initializeSocket = (server) => {
         });
 
         await message.populate('user', 'username avatar');
+        await message.populate({
+          path: 'replyTo',
+          select: 'content user type fileUrl fileName',
+          populate: { path: 'user', select: 'username' }
+        });
 
         // Update user message count
         user.messageCount = (user.messageCount || 0) + 1;
@@ -132,7 +137,8 @@ const initializeSocket = (server) => {
           fileName: message.fileName,
           createdAt: message.createdAt,
           reactions: message.reactions,
-          isPinned: message.isPinned
+          isPinned: message.isPinned,
+          replyTo: message.replyTo
         });
 
         logger.info(`Message from ${user.username}: ${message.type}`);

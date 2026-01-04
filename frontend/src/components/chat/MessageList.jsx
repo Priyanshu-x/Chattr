@@ -3,7 +3,7 @@ import React, { useRef, useEffect } from 'react';
 import { useSocket } from '../../context/SocketContext';
 import MessageBubble from './MessageBubble';
 
-const MessageList = () => {
+const MessageList = ({ onReply }) => {
   const { messages, typingUsers, user } = useSocket();
   const messagesEndRef = useRef(null);
 
@@ -41,6 +41,7 @@ const MessageList = () => {
                 message={message}
                 isOwnMessage={isOwnMessage}
                 showAvatar={showAvatar}
+                onReply={onReply}
               />
             );
           })}
@@ -66,7 +67,7 @@ const MessageList = () => {
                 </div>
               </div>
               <span className="text-xs text-gray-500 dark:text-gray-400">
-                {typingUsers.length === 1 
+                {typingUsers.length === 1
                   ? `${typingUsers[0].username} is typing...`
                   : `${typingUsers.length} people are typing...`
                 }

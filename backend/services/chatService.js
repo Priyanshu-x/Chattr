@@ -50,7 +50,7 @@ class ChatService {
    * @returns {Promise<Message>}
    */
   static async createMessage(data) {
-    const { user, content, type, imageUrl, voiceUrl, fileUrl, fileName } = data;
+    const { user, content, type, imageUrl, voiceUrl, fileUrl, fileName, replyTo } = data;
 
     // 1. Sanitize content (XSS Prevention)
     const sanitizedContent = content ? xss(content.trim()) : '';
@@ -65,6 +65,7 @@ class ChatService {
       voiceUrl,
       fileUrl,
       fileName: sanitizedFileName,
+      replyTo,
       expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000), // 24 hours
       reactions: []
     });
@@ -85,14 +86,14 @@ class ChatService {
     }
 
     let user = await User.findOne({ socketId });
-    
+
     // If not found by socket, check by username to prevent duplicate active usernames (optional, but good practice)
     // For anonymous chat, we might want to allow re-claiming if the socket disconnected recently, 
     // but here we follow the existing pattern of creating/updating based on socket or existing data.
-    
+
     if (user) {
-        user.lastActive = new Date();
-        await user.save();
+      user.lastActive = new Date();
+      await user.save();
     } else {
       user = new User({
         socketId,
@@ -104,7 +105,7 @@ class ChatService {
       });
       await user.save();
     }
-    
+
     return user;
   }
 }

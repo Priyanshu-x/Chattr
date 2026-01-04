@@ -12,6 +12,7 @@ const ChatRoom = () => {
   const { isDark, toggleTheme } = useTheme();
   const [showUserJoin, setShowUserJoin] = useState(!user);
   const [showSidebar, setShowSidebar] = useState(false);
+  const [replyingTo, setReplyingTo] = useState(null);
 
   useEffect(() => {
     if (user) {
@@ -105,8 +106,8 @@ const ChatRoom = () => {
 
       {/* Main Chat Area */}
       <div className="flex-1 flex flex-col overflow-hidden">
-        <MessageList />
-        <MessageInput />
+        <MessageList onReply={setReplyingTo} />
+        <MessageInput replyingTo={replyingTo} setReplyingTo={setReplyingTo} />
       </div>
 
       {/* Click outside to close sidebar */}

@@ -9,6 +9,7 @@ const MessageSchema = new mongoose.Schema({
   voiceUrl: { type: String, default: null },
   fileUrl: { type: String, default: null },
   fileName: { type: String },
+  replyTo: { type: mongoose.Schema.Types.ObjectId, ref: 'Message', default: null },
   isPinned: { type: Boolean, default: false },
   createdAt: { type: Date, default: Date.now },
   expiresAt: { type: Date },

@@ -1,10 +1,9 @@
-// frontend/src/components/chat/MessageInput.jsx - WORKING VERSION
 import React, { useState, useRef, useEffect } from 'react';
 import { useSocket } from '../../context/SocketContext';
-import { Send, Image, Mic, MicOff, Smile } from 'lucide-react';
+import { Send, Image, Mic, MicOff, Smile, Reply } from 'lucide-react';
 import api from '../../utils/api';
 
-const MessageInput = () => {
+const MessageInput = ({ replyingTo, setReplyingTo }) => {
   const { sendMessage, startTyping, stopTyping, user } = useSocket();
   const [message, setMessage] = useState('');
   const [isRecording, setIsRecording] = useState(false);
@@ -51,7 +50,8 @@ const MessageInput = () => {
 
     let messageData = {
       content: message.trim(),
-      type: 'text'
+      type: 'text',
+      replyTo: replyingTo?._id
     };
 
     // Handle file upload
@@ -94,6 +94,7 @@ const MessageInput = () => {
     setFilePreview(null);
     setIsUploading(false);
     stopTyping();
+    if (setReplyingTo) setReplyingTo(null);
   };
 
   const handleFileSelect = (e) => {
@@ -232,6 +233,34 @@ const MessageInput = () => {
         </div>
       )}
 
+      {/* Reply Preview */}
+      {replyingTo && (
+        <div className="px-4 py-2 bg-gray-100 dark:bg-gray-700 border-b border-gray-200 dark:border-gray-600">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-3 overflow-hidden">
+              <Reply className="h-5 w-5 text-gray-500" />
+              <div className="flex-1 truncate">
+                <p className="text-sm font-medium text-gray-900 dark:text-white">
+                  Replying to <span className="font-bold">{replyingTo.user?.username || 'Unknown'}</span>
+                </p>
+                <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
+                  {replyingTo.type === 'text'
+                    ? replyingTo.content
+                    : `${replyingTo.type === 'image' ? '📷 ' : replyingTo.type === 'voice' ? '🎤 ' : '📎 '}${replyingTo.type === 'image' ? 'Image' : replyingTo.type === 'voice' ? 'Voice Message' : 'File'}`
+                  }
+                </p>
+              </div>
+            </div>
+            <button
+              onClick={() => setReplyingTo(null)}
+              className="ml-2 text-gray-400 hover:text-red-500 transition-colors p-1"
+            >
+              ✕
+            </button>
+          </div>
+        </div>
+      )}
+
       <div className="flex items-end space-x-2 p-2 sm:p-4">
         {/* Action Buttons */}
         <div className="flex space-x-1">
@@ -248,8 +277,8 @@ const MessageInput = () => {
           <button
             onClick={isRecording ? stopRecording : startRecording}
             className={`p-2 rounded-full transition-colors ${isRecording
-                ? 'text-red-500 bg-red-50 dark:bg-red-900/20'
-                : 'text-gray-500 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20'
+              ? 'text-red-500 bg-red-50 dark:bg-red-900/20'
+              : 'text-gray-500 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20'
               }`}
           >
             {isRecording ? <MicOff className="h-5 w-5" /> : <Mic className="h-5 w-5" />}
