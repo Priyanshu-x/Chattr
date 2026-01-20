@@ -17,7 +17,7 @@ export const SocketProvider = ({ children }) => {
 
   // Initialize socket connection once
   useEffect(() => {
-    const backendUrl = import.meta.env.VITE_BACKEND_URL;
+    const backendUrl = import.meta.env.VITE_BACKEND_URL || '/';
     console.log('SocketContext: Initializing socket connection with URL:', backendUrl);
     socketRef.current = io(backendUrl, {
       transports: ['websocket', 'polling'],
@@ -50,7 +50,7 @@ export const SocketProvider = ({ children }) => {
     socket.on('connecting', () => {
       console.log('SocketContext: Attempting to connect to server...');
     });
-    
+
     socket.on('connect_error', (err) => {
       console.error('❌ Socket connection error:', err.message);
     });

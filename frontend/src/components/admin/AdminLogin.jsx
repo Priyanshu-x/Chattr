@@ -17,15 +17,22 @@ const AdminLogin = () => {
     setError('');
 
     try {
+      console.log('Sending login request...', credentials);
       const response = await api.post('/api/admin/login', credentials);
+      console.log('Login response:', response.data);
 
-      // Token is now set as an HttpOnly cookie by the backend
-      // But we MUST store the user info in localStorage because AdminDashboard checks it
-      // to determine if it should render or redirect back to login.
-      localStorage.setItem('adminUser', JSON.stringify(response.data.admin));
-
-      navigate('/admin/dashboard');
+      if (response.data.admin) {
+        // Token is now set as an HttpOnly cookie by the backend
+        // But we MUST store the user info in localStorage because AdminDashboard checks it
+        localStorage.setItem('adminUser', JSON.stringify(response.data.admin));
+        console.log('Stored adminUser in localStorage, navigating...');
+        navigate('/admin/dashboard');
+      } else {
+        console.error('Response missing admin data', response.data);
+        setError('Login succeeded but no user data received.');
+      }
     } catch (error) {
+      console.error('Login error:', error);
       setError(error.response?.data?.error || 'Login failed');
     } finally {
       setLoading(false);
