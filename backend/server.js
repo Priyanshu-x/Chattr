@@ -81,15 +81,24 @@ app.use(errorHandler);
 // Socket.io connection handling
 
 // Serve static files from the React frontend app
+const frontendPath = path.join(__dirname, '../frontend/dist');
+const fs = require('fs');
+// Ensure fs is required if not already globally available (usually redundant if fs is top-level, but safe here)
+
+logger.info(`Serving static files from: ${frontendPath}`);
+if (fs.existsSync(path.join(frontendPath, 'index.html'))) {
+  logger.info('frontend/dist/index.html found');
+} else {
+  logger.error('frontend/dist/index.html NOT found! Check build process.');
+}
+
 // Only serve if the directory exists (optional check, but good for local dev if dist is missing)
-app.use(express.static(path.join(__dirname, '../frontend/dist')));
+app.use(express.static(frontendPath));
 
 // Anything that doesn't match the above, send back index.html
 app.get(/(.*)/, (req, res) => {
-  res.sendFile(path.join(__dirname, '../frontend/dist/index.html'));
+  res.sendFile(path.join(frontendPath, 'index.html'));
 });
-
-
 
 const PORT = process.env.PORT || 5000;
 server.listen(PORT, () => {
