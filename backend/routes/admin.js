@@ -9,6 +9,7 @@ const router = express.Router();
 const { validateInput, validateObjectId, rateLimitMiddleware } = require('../middleware/auth');
 const { adminLoginSchema, banUserSchema, announcementSchema } = require('../utils/validationSchemas');
 const logger = require('../utils/logger');
+const adminController = require('../controllers/adminController');
 
 // Admin login
 router.post('/login', rateLimitMiddleware(5, 60000), validateInput(adminLoginSchema), async (req, res, next) => {
