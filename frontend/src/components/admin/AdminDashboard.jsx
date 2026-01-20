@@ -328,11 +328,23 @@ const AdminSettings = () => {
 
   const [loading, setLoading] = useState(false);
 
+  useEffect(() => {
+    const fetchSettings = async () => {
+      try {
+        const response = await api.get('/api/admin/settings');
+        // Merge fetched settings with default structure to ensure all keys exist
+        setSettings(prev => ({ ...prev, ...response.data }));
+      } catch (error) {
+        console.error('Failed to load settings', error);
+      }
+    };
+    fetchSettings();
+  }, []);
+
   const handleSaveSettings = async () => {
     setLoading(true);
     try {
-      // In a real app, this would save to backend
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      await api.put('/api/admin/settings', settings);
       alert('Settings saved successfully!');
     } catch (error) {
       alert('Failed to save settings');

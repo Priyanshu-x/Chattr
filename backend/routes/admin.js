@@ -15,7 +15,7 @@ router.post('/login', rateLimitMiddleware(5, 60000), validateInput(adminLoginSch
   try {
     const { username, password } = req.body;
     logger.info(`Admin login attempt for username: ${username}`);
-    
+
     let admin = await AdminUser.findOne({ username });
     if (!admin) {
       logger.warn(`Admin user ${username} not found.`);
@@ -72,7 +72,7 @@ router.get('/stats', adminAuth, async (req, res) => {
         createdAt: { $gte: new Date(Date.now() - 24 * 60 * 60 * 1000) }
       })
     };
-    
+
     res.json(stats);
   } catch (error) {
     next(error);
@@ -96,16 +96,16 @@ router.post('/users/:userId/ban', adminAuth, validateObjectId('userId'), validat
   try {
     const { userId } = req.params;
     const { duration } = req.body; // hours
-    
+
     const user = await User.findById(userId);
     if (!user) {
       throw new Error('User not found', 404);
     }
-    
+
     user.isBanned = true;
     user.bannedUntil = new Date(Date.now() + duration * 60 * 60 * 1000);
     await user.save();
-    
+
     // Emit ban event to socket
     const { getIO } = require('../config/socket');
     const io = getIO();
@@ -113,7 +113,7 @@ router.post('/users/:userId/ban', adminAuth, validateObjectId('userId'), validat
       reason: 'Banned by administrator',
       duration: duration
     });
-    
+
     res.json({ message: 'User banned successfully' });
   } catch (error) {
     next(error);
@@ -124,22 +124,22 @@ router.post('/users/:userId/ban', adminAuth, validateObjectId('userId'), validat
 router.post('/users/:userId/kick', adminAuth, validateObjectId('userId'), async (req, res, next) => {
   try {
     const { userId } = req.params;
-    
+
     const user = await User.findById(userId);
     if (!user) {
       throw new Error('User not found', 404);
     }
-    
+
     // Emit kick event to socket
     const { getIO } = require('../config/socket');
     const io = getIO();
     io.to(user.socketId).emit('user-kicked', {
       reason: 'Kicked by administrator'
     });
-    
+
     // Disconnect the user
     io.sockets.sockets.get(user.socketId)?.disconnect();
-    
+
     res.json({ message: 'User kicked successfully' });
   } catch (error) {
     next(error);
@@ -150,17 +150,17 @@ router.post('/users/:userId/kick', adminAuth, validateObjectId('userId'), async 
 router.delete('/messages/:messageId', adminAuth, validateObjectId('messageId'), async (req, res, next) => {
   try {
     const { messageId } = req.params;
-    
+
     const message = await Message.findByIdAndDelete(messageId);
     if (!message) {
       throw new Error('Message not found', 404);
     }
-    
+
     // Emit message deletion to all clients
     const { getIO } = require('../config/socket');
     const io = getIO();
     io.emit('message-deleted', { messageId });
-    
+
     res.json({ message: 'Message deleted successfully' });
   } catch (error) {
     next(error);
@@ -171,15 +171,15 @@ router.delete('/messages/:messageId', adminAuth, validateObjectId('messageId'), 
 router.patch('/messages/:messageId/pin', adminAuth, validateObjectId('messageId'), async (req, res, next) => {
   try {
     const { messageId } = req.params;
-    
+
     const message = await Message.findById(messageId);
     if (!message) {
       throw new Error('Message not found', 404);
     }
-    
+
     message.isPinned = !message.isPinned;
     await message.save();
-    
+
     // Emit pin update to all clients
     const { getIO } = require('../config/socket');
     const io = getIO();
@@ -187,7 +187,7 @@ router.patch('/messages/:messageId/pin', adminAuth, validateObjectId('messageId'
       messageId,
       isPinned: message.isPinned
     });
-    
+
     res.json({ message: `Message ${message.isPinned ? 'pinned' : 'unpinned'} successfully` });
   } catch (error) {
     next(error);
@@ -198,7 +198,7 @@ router.patch('/messages/:messageId/pin', adminAuth, validateObjectId('messageId'
 router.post('/announcement', adminAuth, validateInput(announcementSchema), async (req, res, next) => {
   try {
     const { content, type } = req.body;
-    
+
     // Emit announcement to all clients
     const { getIO } = require('../config/socket');
     const io = getIO();
@@ -207,12 +207,16 @@ router.post('/announcement', adminAuth, validateInput(announcementSchema), async
       type,
       timestamp: new Date()
     });
-    
+
     res.json({ message: 'Announcement sent successfully' });
   } catch (error) {
     next(error);
   }
 });
+
+// Global Settings
+router.get('/settings', adminAuth, adminController.getSettings);
+router.put('/settings', adminAuth, adminController.updateSettings);
 
 module.exports = router;
 

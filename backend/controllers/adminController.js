@@ -54,7 +54,7 @@ exports.sendAnnouncement = async (req, res, next) => {
 		// For now, we'll just log and send a success response.
 		// Example: await Announcement.create({ content: sanitizedContent, type });
 		console.log('New Announcement:', { content: sanitizedContent, type });
-		
+
 		// Assuming socket.io is available via req or context for broadcasting
 		// req.io.emit('announcement', { content: sanitizedContent, type });
 
@@ -114,5 +114,42 @@ exports.pinMessage = async (req, res) => {
 		res.json({ success: true, isPinned: message.isPinned });
 	} catch (error) {
 		next(error instanceof AppError ? error : new AppError(error.message, error.statusCode || 500));
+	}
+};
+
+const GlobalSettings = require('../models/GlobalSettings');
+
+exports.getSettings = async (req, res, next) => {
+	try {
+		const settings = await GlobalSettings.getSettings();
+		res.json(settings);
+	} catch (error) {
+		next(error instanceof AppError ? error : new AppError(error.message, 500));
+	}
+};
+
+exports.updateSettings = async (req, res, next) => {
+	try {
+		const settings = await GlobalSettings.getSettings();
+
+		// Whitelist allowed fields to prevent pollution
+		const allowedFields = [
+			'messageExpiry', 'maxFileSize', 'allowImages', 'allowVoice',
+			'allowStickers', 'maxUsersOnline', 'rateLimitMessages', 'rateLimitWindow'
+		];
+
+		allowedFields.forEach(field => {
+			if (req.body[field] !== undefined) {
+				settings[field] = req.body[field];
+			}
+		});
+
+		// settings.updatedBy = req.admin.adminId; // req.admin comes from auth middleware
+		settings.updatedAt = Date.now();
+
+		await settings.save();
+		res.json(settings);
+	} catch (error) {
+		next(error instanceof AppError ? error : new AppError(error.message, 500));
 	}
 };
