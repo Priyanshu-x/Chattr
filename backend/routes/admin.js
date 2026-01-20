@@ -12,47 +12,8 @@ const logger = require('../utils/logger');
 const adminController = require('../controllers/adminController');
 
 // Admin login
-router.post('/login', rateLimitMiddleware(5, 60000), validateInput(adminLoginSchema), async (req, res, next) => {
-  try {
-    const { username, password } = req.body;
-    logger.info(`Admin login attempt for username: ${username}`);
-
-    let admin = await AdminUser.findOne({ username });
-    if (!admin) {
-      logger.warn(`Admin user ${username} not found.`);
-      throw new Error('Invalid credentials', 401);
-    }
-
-    const isValid = await admin.comparePassword(password);
-    if (!isValid) {
-      logger.error(`Invalid credentials for ${username}: Password mismatch.`);
-      throw new Error('Invalid credentials', 401);
-    }
-
-    admin.lastLogin = new Date();
-    await admin.save();
-    logger.info(`Admin ${username} logged in successfully. Updating lastLogin.`);
-
-    const token = jwt.sign(
-      { adminId: admin._id, role: admin.role },
-      process.env.JWT_SECRET,
-      { expiresIn: '24h' }
-    );
-    logger.info(`JWT token generated for admin ${username}.`);
-
-    res.json({
-      token,
-      admin: {
-        id: admin._id,
-        username: admin.username,
-        role: admin.role
-      }
-    });
-  } catch (error) {
-    logger.error(`Admin login error for ${req.body.username}: ${error.message}`);
-    next(error);
-  }
-});
+// Admin login
+router.post('/login', rateLimitMiddleware(5, 60000), validateInput(adminLoginSchema), adminController.login);
 
 // Admin logout
 router.post('/logout', adminAuth, (req, res) => {
