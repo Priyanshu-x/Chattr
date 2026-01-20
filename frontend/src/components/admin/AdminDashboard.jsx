@@ -27,12 +27,12 @@ const AdminDashboard = () => {
 
   useEffect(() => {
     const user = localStorage.getItem('adminUser');
-    
+
     if (!user) {
       navigate('/admin');
       return;
     }
-    
+
     setAdminUser(JSON.parse(user));
     // No need to set Authorization header, as token is now in HttpOnly cookie and sent automatically with `withCredentials`
   }, [navigate]);
@@ -52,10 +52,10 @@ const AdminDashboard = () => {
 
   const sendAnnouncement = async () => {
     if (!announcement.trim()) return;
-    
+
     setLoading(true);
     try {
-  await api.post('/api/admin/announcement', {
+      await api.post('/api/admin/announcement', {
         content: announcement,
         type: 'info'
       });
@@ -91,25 +91,23 @@ const AdminDashboard = () => {
         <div className="px-6 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
-              <div className="w-10 h-10 bg-red-100 dark:bg-red-900/20 rounded-full flex items-center justify-center">
-                <Shield className="h-6 w-6 text-red-600 dark:text-red-400" />
+              <div className="w-10 h-10 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center">
+                <Shield className="h-6 w-6 text-gray-900 dark:text-white" />
               </div>
               <div>
                 <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
                   Admin Dashboard
                 </h1>
-                <p
-                  className="text-sm text-gray-600 dark:text-gray-400"
-                >
+                <p className="text-sm text-gray-600 dark:text-gray-400">
                   Welcome back, {DOMPurify.sanitize(adminUser.username)}
                 </p>
               </div>
             </div>
-            
+
             <div className="flex items-center space-x-4">
               <button
                 onClick={() => navigate('/')}
-                className="px-4 py-2 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors"
+                className="px-4 py-2 text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
               >
                 View Chat
               </button>
@@ -135,11 +133,10 @@ const AdminDashboard = () => {
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
-                  className={`flex items-center space-x-2 py-4 border-b-2 font-medium text-sm transition-colors ${
-                    activeTab === tab.id
-                      ? 'border-red-500 text-red-600 dark:text-red-400'
-                      : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
-                  }`}
+                  className={`flex items-center space-x-2 py-4 border-b-2 font-medium text-sm transition-colors ${activeTab === tab.id
+                    ? 'border-red-500 text-red-600 dark:text-red-400'
+                    : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
+                    }`}
                 >
                   <Icon className="h-4 w-4" />
                   <span>{tab.name}</span>
@@ -168,13 +165,13 @@ const AdminDashboard = () => {
                   onChange={(e) => setAnnouncement(e.target.value)}
                   placeholder="Type your announcement here..."
                   rows={3}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent resize-none"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent resize-none"
                 />
               </div>
               <button
                 onClick={sendAnnouncement}
                 disabled={!announcement.trim() || loading}
-                className="flex items-center space-x-2 px-4 py-2 bg-red-500 hover:bg-red-600 disabled:bg-gray-400 text-white rounded-lg transition-colors disabled:cursor-not-allowed"
+                className="flex items-center space-x-2 px-4 py-2 bg-primary-500 hover:bg-primary-600 disabled:bg-gray-400 text-white rounded-lg transition-colors disabled:cursor-not-allowed"
               >
                 <Send className="h-4 w-4" />
                 <span>{loading ? 'Sending...' : 'Send'}</span>
@@ -204,7 +201,7 @@ const MessageManagement = () => {
   useEffect(() => {
     const fetchMessages = async () => {
       try {
-  const response = await api.get('/api/chat/messages?limit=100');
+        const response = await api.get('/api/chat/messages?limit=100');
         setMessages(response.data.messages);
       } catch (error) {
         console.error('Failed to fetch messages:', error);
@@ -218,9 +215,9 @@ const MessageManagement = () => {
 
   const deleteMessage = async (messageId) => {
     if (!confirm('Are you sure you want to delete this message?')) return;
-    
+
     try {
-  await api.delete(`/api/admin/messages/${messageId}`);
+      await api.delete(`/api/admin/messages/${messageId}`);
       setMessages(prev => prev.filter(msg => msg._id !== messageId));
       alert('Message deleted successfully');
     } catch (error) {
@@ -230,8 +227,8 @@ const MessageManagement = () => {
 
   const togglePin = async (messageId, isPinned) => {
     try {
-  await api.patch(`/api/admin/messages/${messageId}/pin`);
-      setMessages(prev => prev.map(msg => 
+      await api.patch(`/api/admin/messages/${messageId}/pin`);
+      setMessages(prev => prev.map(msg =>
         msg._id === messageId ? { ...msg, isPinned: !isPinned } : msg
       ));
       alert(`Message ${!isPinned ? 'pinned' : 'unpinned'} successfully`);
@@ -269,7 +266,6 @@ const MessageManagement = () => {
                     <div>
                       <p
                         className="font-medium text-gray-900 dark:text-white"
-                        className="font-medium text-gray-900 dark:text-white"
                       >
                         {DOMPurify.sanitize(message.user.username)}
                       </p>
@@ -285,7 +281,6 @@ const MessageManagement = () => {
                   </div>
                   <p
                     className="text-gray-700 dark:text-gray-300 break-words"
-                    className="text-gray-700 dark:text-gray-300 break-words"
                   >
                     {DOMPurify.sanitize(message.content || `[${message.type} message]`)}
                   </p>
@@ -293,11 +288,10 @@ const MessageManagement = () => {
                 <div className="flex space-x-2 ml-4">
                   <button
                     onClick={() => togglePin(message._id, message.isPinned)}
-                    className={`p-2 rounded-lg transition-colors ${
-                      message.isPinned
-                        ? 'bg-yellow-100 dark:bg-yellow-900/20 text-yellow-600 dark:text-yellow-400'
-                        : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-600'
-                    }`}
+                    className={`p-2 rounded-lg transition-colors ${message.isPinned
+                      ? 'bg-yellow-100 dark:bg-yellow-900/20 text-yellow-600 dark:text-yellow-400'
+                      : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-600'
+                      }`}
                     title={message.isPinned ? 'Unpin message' : 'Pin message'}
                   >
                     <Pin className="h-4 w-4" />
@@ -331,7 +325,7 @@ const AdminSettings = () => {
     rateLimitMessages: 10,
     rateLimitWindow: 60
   });
-  
+
   const [loading, setLoading] = useState(false);
 
   const handleSaveSettings = async () => {
@@ -356,7 +350,7 @@ const AdminSettings = () => {
       <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-6">
         Chat Settings
       </h3>
-      
+
       <div className="space-y-6">
         {/* Message Settings */}
         <div>
@@ -372,10 +366,10 @@ const AdminSettings = () => {
                 onChange={(e) => handleSettingChange('messageExpiry', parseInt(e.target.value))}
                 min="1"
                 max="168"
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
               />
             </div>
-            
+
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 Max File Size (MB)
@@ -386,7 +380,7 @@ const AdminSettings = () => {
                 onChange={(e) => handleSettingChange('maxFileSize', parseInt(e.target.value))}
                 min="1"
                 max="100"
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
               />
             </div>
           </div>
@@ -406,7 +400,7 @@ const AdminSettings = () => {
                   type="checkbox"
                   checked={settings[key]}
                   onChange={(e) => handleSettingChange(key, e.target.checked)}
-                  className="rounded border-gray-300 text-red-600 focus:ring-red-500"
+                  className="rounded border-gray-300 text-primary-600 focus:ring-primary-500"
                 />
                 <span className="text-gray-700 dark:text-gray-300">{label}</span>
               </label>
@@ -428,10 +422,10 @@ const AdminSettings = () => {
                 onChange={(e) => handleSettingChange('rateLimitMessages', parseInt(e.target.value))}
                 min="1"
                 max="100"
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
               />
             </div>
-            
+
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 Rate Limit Window (seconds)
@@ -442,7 +436,7 @@ const AdminSettings = () => {
                 onChange={(e) => handleSettingChange('rateLimitWindow', parseInt(e.target.value))}
                 min="10"
                 max="3600"
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
               />
             </div>
           </div>
@@ -461,7 +455,7 @@ const AdminSettings = () => {
               onChange={(e) => handleSettingChange('maxUsersOnline', parseInt(e.target.value))}
               min="10"
               max="1000"
-              className="w-full md:w-1/2 px-3 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
+              className="w-full md:w-1/2 px-3 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
             />
           </div>
         </div>
@@ -471,7 +465,7 @@ const AdminSettings = () => {
           <button
             onClick={handleSaveSettings}
             disabled={loading}
-            className="px-6 py-2 bg-red-500 hover:bg-red-600 disabled:bg-gray-400 text-white font-medium rounded-lg transition-colors disabled:cursor-not-allowed"
+            className="px-6 py-2 bg-primary-500 hover:bg-primary-600 disabled:bg-gray-400 text-white font-medium rounded-lg transition-colors disabled:cursor-not-allowed"
           >
             {loading ? 'Saving...' : 'Save Settings'}
           </button>

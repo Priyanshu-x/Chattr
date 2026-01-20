@@ -12,7 +12,7 @@ const IpBlockManagement = () => {
   const fetchBlockedIps = async () => {
     setLoading(true);
     try {
-  const res = await api.get('/api/admin/blocked-ips');
+      const res = await api.get('/api/admin/blocked-ips');
       setBlockedIps(res.data);
     } catch (e) {
       // ignore
@@ -28,7 +28,7 @@ const IpBlockManagement = () => {
   const handleBlock = async () => {
     if (!newIp.trim()) return;
     try {
-  await api.post('/api/admin/block-ip', { ip: newIp });
+      await api.post('/api/admin/block-ip', { ip: newIp });
       setNewIp('');
       fetchBlockedIps();
     } catch (e) {
@@ -39,7 +39,7 @@ const IpBlockManagement = () => {
   const handleUnblock = async (ip) => {
     if (!window.confirm(`Unblock IP ${ip}?`)) return;
     try {
-  await api.delete(`/api/admin/block-ip/${ip}`);
+      await api.delete(`/api/admin/block-ip/${ip}`);
       fetchBlockedIps();
     } catch (e) {
       alert('Failed to unblock IP');
@@ -59,7 +59,7 @@ const IpBlockManagement = () => {
         />
         <button
           onClick={handleBlock}
-          className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg"
+          className="px-4 py-2 bg-primary-500 hover:bg-primary-600 text-white rounded-lg"
         >
           Block
         </button>
