@@ -32,11 +32,29 @@ exports.sendMessage = async (req, res, next) => {
 	}
 };
 
-exports.uploadImage = (req, res, next) => {
+const GlobalSettings = require('../models/GlobalSettings');
+
+exports.uploadImage = async (req, res, next) => {
 	try {
 		if (!req.file) {
 			throw new AppError('No file uploaded', 400);
 		}
+
+		const settings = await GlobalSettings.getSettings();
+		const maxSizeBytes = settings.maxFileSize * 1024 * 1024;
+
+		if (req.file.size > maxSizeBytes) {
+			fs.unlink(req.file.path, (err) => {
+				if (err) console.error('Error deleting large file:', err);
+			});
+			throw new AppError(`File too large. Max size is ${settings.maxFileSize}MB.`, 400);
+		}
+
+		if (!settings.allowImages) {
+			fs.unlink(req.file.path, () => { });
+			throw new AppError('Image uploads are currently disabled.', 403);
+		}
+
 		// Return the sanitized filename from multer
 		res.json({
 			fileUrl: `/uploads/${req.file.filename}`, // Use /uploads route for secure access
@@ -44,15 +62,31 @@ exports.uploadImage = (req, res, next) => {
 			fileType: req.file.mimetype // Mimetype for display/handling
 		});
 	} catch (error) {
+		// Clean up file if error occurs
+		if (req.file) fs.unlink(req.file.path, () => { });
 		next(error);
 	}
 };
 
-exports.uploadVoice = (req, res, next) => {
+exports.uploadVoice = async (req, res, next) => {
 	try {
 		if (!req.file) {
 			throw new AppError('No file uploaded', 400);
 		}
+
+		const settings = await GlobalSettings.getSettings();
+		const maxSizeBytes = settings.maxFileSize * 1024 * 1024;
+
+		if (req.file.size > maxSizeBytes) {
+			fs.unlink(req.file.path, () => { });
+			throw new AppError(`File too large. Max size is ${settings.maxFileSize}MB.`, 400);
+		}
+
+		if (!settings.allowVoice) {
+			fs.unlink(req.file.path, () => { });
+			throw new AppError('Voice messages are currently disabled.', 403);
+		}
+
 		// Return the sanitized filename from multer
 		res.json({
 			fileUrl: `/uploads/${req.file.filename}`, // Use /uploads route for secure access
@@ -60,6 +94,7 @@ exports.uploadVoice = (req, res, next) => {
 			fileType: req.file.mimetype
 		});
 	} catch (error) {
+		if (req.file) fs.unlink(req.file.path, () => { });
 		next(error);
 	}
 };
@@ -69,6 +104,15 @@ exports.uploadFile = async (req, res, next) => {
 		if (!req.file) {
 			throw new AppError('No file uploaded', 400);
 		}
+
+		const settings = await GlobalSettings.getSettings();
+		const maxSizeBytes = settings.maxFileSize * 1024 * 1024;
+
+		if (req.file.size > maxSizeBytes) {
+			fs.unlink(req.file.path, () => { });
+			throw new AppError(`File too large. Max size is ${settings.maxFileSize}MB.`, 400);
+		}
+
 		// Return the sanitized filename from multer
 		res.json({
 			fileUrl: `/uploads/${req.file.filename}`, // Use /uploads route for secure access
@@ -76,6 +120,7 @@ exports.uploadFile = async (req, res, next) => {
 			fileType: req.file.mimetype
 		});
 	} catch (error) {
+		if (req.file) fs.unlink(req.file.path, () => { });
 		next(error);
 	}
 };

@@ -2,6 +2,7 @@ const Message = require('../models/Message');
 const User = require('../models/User');
 const xss = require('xss');
 const AppError = require('../utils/AppError');
+const GlobalSettings = require('../models/GlobalSettings');
 
 // In-memory rate limit store: Map<userId, {count, startTime}>
 const rateLimits = new Map();
@@ -52,6 +53,31 @@ class ChatService {
   static async createMessage(data) {
     const { user, content, type, imageUrl, voiceUrl, fileUrl, fileName, replyTo } = data;
 
+    // Fetch Global Settings
+    const settings = await GlobalSettings.getSettings();
+
+    // 1. Check Feature Toggles
+    if (type === 'image' && !settings.allowImages) {
+      throw new AppError('Image messages are currently disabled by the administrator.', 403);
+    }
+    if (type === 'voice' && !settings.allowVoice) {
+      throw new AppError('Voice messages are currently disabled by the administrator.', 403);
+    }
+    // Sticker check (assuming type might be 'sticker' or handled via content) if relevant
+
+    // 2. Check Rate Limits
+    if (settings.rateLimitMessages > 0) {
+      const windowStart = new Date(Date.now() - settings.rateLimitWindow * 1000);
+      const messageCount = await Message.countDocuments({
+        user: user,
+        createdAt: { $gte: windowStart }
+      });
+
+      if (messageCount >= settings.rateLimitMessages) {
+        throw new AppError(`Rate limit exceeded. You can only send ${settings.rateLimitMessages} messages every ${settings.rateLimitWindow} seconds.`, 429);
+      }
+    }
+
     // 1. Sanitize content (XSS Prevention)
     const sanitizedContent = content ? xss(content.trim()) : '';
     const sanitizedFileName = fileName ? xss(fileName.trim()) : '';
@@ -66,7 +92,7 @@ class ChatService {
       fileUrl,
       fileName: sanitizedFileName,
       replyTo,
-      expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000), // 24 hours
+      expiresAt: new Date(Date.now() + settings.messageExpiry * 60 * 60 * 1000), // Dynamic expiry
       reactions: []
     });
 

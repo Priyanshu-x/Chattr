@@ -19,7 +19,10 @@ const AdminLogin = () => {
     try {
       const response = await api.post('/api/admin/login', credentials);
 
-      // Token is now set as an HttpOnly cookie by the backend, no need to store in localStorage
+      // Token is now set as an HttpOnly cookie by the backend
+      // But we MUST store the user info in localStorage because AdminDashboard checks it
+      // to determine if it should render or redirect back to login.
+      localStorage.setItem('adminUser', JSON.stringify(response.data.admin));
 
       navigate('/admin/dashboard');
     } catch (error) {
