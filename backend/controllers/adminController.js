@@ -5,10 +5,10 @@ const jwt = require('jsonwebtoken');
 const xss = require('xss'); // Import xss for sanitization
 const AppError = require('../utils/AppError'); // Import AppError
 
-exports.login = async (req, res) => {
+exports.login = async (req, res, next) => {
 	try {
 		const { username, password } = req.body;
-		const admin = await AdminUser.findOne({ username });
+		const admin = await AdminUser.findOne({ username }).select('+password');
 		if (!admin) {
 			throw new AppError('Invalid credentials', 401); // Use AppError
 		}
