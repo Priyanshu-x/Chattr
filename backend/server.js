@@ -20,7 +20,18 @@ initializeSocket(server);
 connectDB(); // Call connectDB
 
 // Middleware
-app.use(helmet()); // Use Helmet for security headers
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      connectSrc: ["'self'", process.env.CLIENT_URL || 'http://localhost:5173'],
+      imgSrc: ["'self'", "data:", "blob:", "https://res.cloudinary.com"],
+      mediaSrc: ["'self'", "data:", "blob:", "https://res.cloudinary.com"],
+      scriptSrc: ["'self'", "'unsafe-inline'"], // Allow inline scripts if needed (often for simple apps)
+      styleSrc: ["'self'", "'unsafe-inline'"],
+    },
+  },
+}));
 
 // HSTS configuration
 app.use(helmet.hsts({

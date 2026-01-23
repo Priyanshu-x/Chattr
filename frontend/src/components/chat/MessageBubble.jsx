@@ -43,7 +43,7 @@ const MessageBubble = ({ message, isOwnMessage, showAvatar, onReply }) => {
             <img
               src={getFileUrl(message.fileUrl)}
               alt="Shared image"
-              className="max-w-full h-auto rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
+              className="max-w-full sm:max-w-[250px] max-h-[300px] object-cover rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
               onClick={() => window.open(getFileUrl(message.fileUrl), '_blank', 'noopener,noreferrer')}
             />
             {message.content && (
