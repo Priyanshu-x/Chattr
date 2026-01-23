@@ -22,7 +22,7 @@ const MessageList = ({ onReply }) => {
           <div className="text-center">
             <div className="text-6xl mb-4">💬</div>
             <h3 className="text-lg font-semibold text-gray-700 dark:text-gray-300 mb-2">
-              Welcome to Anonymous Chat!
+              Welcome to Chattr!
             </h3>
             <p className="text-gray-500 dark:text-gray-400">
               Start a conversation by sending your first message

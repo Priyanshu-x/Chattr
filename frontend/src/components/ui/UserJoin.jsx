@@ -79,7 +79,7 @@ const UserJoin = ({ onClose }) => {
             <User className="h-8 w-8 text-primary-600 dark:text-gray-200" />
           </div>
           <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-            Welcome to Anonymous Chat!
+            Welcome to Chattr!
           </h2>
           <p className="text-gray-600 dark:text-gray-400">
             Choose your identity and start chatting

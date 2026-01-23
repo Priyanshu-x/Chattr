@@ -35,7 +35,7 @@ const ChatRoom = () => {
   }
 
   return (
-    <div className="flex flex-col h-screen bg-gray-50 dark:bg-gray-900">
+    <div className="flex flex-col h-dvh bg-gray-50 dark:bg-gray-900">
       {/* User Join Modal */}
       {showUserJoin && (
         <UserJoin onClose={() => setShowUserJoin(false)} />
@@ -45,7 +45,7 @@ const ChatRoom = () => {
       <header className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-4 py-3 flex items-center justify-between z-10 relative">
         <div className="flex items-center space-x-4">
           <h1 className="text-xl font-bold text-gray-900 dark:text-white">
-            Anonymous Chat
+            Chattr
           </h1>
           <div className="flex items-center space-x-2 px-3 py-1 bg-green-100 dark:bg-green-900/20 text-green-800 dark:text-green-200 rounded-full">
             <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>

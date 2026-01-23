@@ -12,6 +12,15 @@ export default {
       screens: {
         'xs': '480px',
       },
+      height: {
+        dvh: '100dvh',
+      },
+      minHeight: {
+        dvh: '100dvh',
+      },
+      maxHeight: {
+        dvh: '100dvh',
+      },
       colors: {
         gray: colors.neutral,
         primary: {
