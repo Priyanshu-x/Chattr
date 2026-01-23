@@ -72,8 +72,8 @@ const MessageBubble = ({ message, isOwnMessage, showAvatar, onReply }) => {
       case 'file':
         // Generic file card for ALL 'file' types (even if extension is image/video)
         return (
-          <div className="flex items-center space-x-3 p-3 bg-gray-50 dark:bg-gray-800/50 rounded-lg border border-gray-200 dark:border-gray-600 max-w-full">
-            <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
+          <div className="flex items-center space-x-3 p-3 bg-gray-50 dark:bg-gray-800/50 rounded-lg border border-gray-200 dark:border-gray-600 max-w-full overflow-hidden">
+            <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex-shrink-0">
               <FileText className="h-6 w-6 text-blue-600 dark:text-blue-400" />
             </div>
             <div className="flex-1 min-w-0">

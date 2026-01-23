@@ -25,7 +25,7 @@ app.use(helmet({
     directives: {
       defaultSrc: ["'self'"],
       connectSrc: ["'self'", process.env.CLIENT_URL || 'http://localhost:5173'],
-      imgSrc: ["'self'", "data:", "blob:", "https://res.cloudinary.com"],
+      imgSrc: ["'self'", "data:", "blob:", "https://res.cloudinary.com", "https://api.dicebear.com"],
       mediaSrc: ["'self'", "data:", "blob:", "https://res.cloudinary.com"],
       scriptSrc: ["'self'", "'unsafe-inline'"], // Allow inline scripts if needed (often for simple apps)
       styleSrc: ["'self'", "'unsafe-inline'"],
