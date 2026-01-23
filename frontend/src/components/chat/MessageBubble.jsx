@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { useSocket } from '../../hooks/useSocket';
 import { formatTime } from '../../utils/helpers';
-import { Pin, MoreVertical, Copy, Reply } from 'lucide-react';
+import { Pin, MoreVertical, Copy, Reply, FileText, Download } from 'lucide-react';
 import DOMPurify from 'dompurify'; // Import DOMPurify
 
 const MessageBubble = ({ message, isOwnMessage, showAvatar, onReply }) => {
@@ -21,6 +21,13 @@ const MessageBubble = ({ message, isOwnMessage, showAvatar, onReply }) => {
     alert('Message copied to clipboard!');
   };
 
+  // Helper to handle both local (relative) and Cloudinary (absolute) URLs
+  const getFileUrl = (url) => {
+    if (!url) return '';
+    if (url.startsWith('http')) return url; // Already valid absolute URL (Cloudinary)
+    return `${import.meta.env.VITE_BACKEND_URL}${url}`; // Local path
+  };
+
   const renderMessageContent = () => {
     switch (message.type) {
       case 'text':
@@ -34,10 +41,10 @@ const MessageBubble = ({ message, isOwnMessage, showAvatar, onReply }) => {
         return (
           <div className="relative">
             <img
-              src={`${import.meta.env.VITE_BACKEND_URL}${message.fileUrl}`}
+              src={getFileUrl(message.fileUrl)}
               alt="Shared image"
               className="max-w-full h-auto rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
-              onClick={() => window.open(`${import.meta.env.VITE_BACKEND_URL}${message.fileUrl}`, '_blank', 'noopener,noreferrer')}
+              onClick={() => window.open(getFileUrl(message.fileUrl), '_blank', 'noopener,noreferrer')}
             />
             {message.content && (
               <p
@@ -56,67 +63,38 @@ const MessageBubble = ({ message, isOwnMessage, showAvatar, onReply }) => {
             <div className="flex-1">
               <div className="text-sm text-gray-600 dark:text-gray-400">Voice message</div>
               <audio controls className="mt-1">
-                <source src={`${import.meta.env.VITE_BACKEND_URL}${message.fileUrl}`} type="audio/webm" />
+                <source src={getFileUrl(message.fileUrl)} type="audio/webm" />
                 Your browser does not support the audio element.
               </audio>
             </div>
           </div>
         );
       case 'file':
-        const fileExtension = message.fileName ? message.fileName.split('.').pop().toLowerCase() : '';
-        const isVideo = ['mp4', 'webm', 'ogg'].includes(fileExtension);
-        const isImage = ['jpg', 'jpeg', 'png', 'gif'].includes(fileExtension);
-
-        if (isVideo) {
-          return (
-            <div className="relative">
-              <video
-                src={`${import.meta.env.VITE_BACKEND_URL}${message.fileUrl}`}
-                controls
-                className="max-w-full h-auto rounded-lg"
-              >
-                Your browser does not support the video tag.
-              </video>
-              {message.content && (
-                <p
-                  className="text-sm mt-2 break-words whitespace-pre-wrap"
-                  dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(message.content) }}
-                />
-              )}
+        // Generic file card for ALL 'file' types (even if extension is image/video)
+        return (
+          <div className="flex items-center space-x-3 p-3 bg-gray-50 dark:bg-gray-800/50 rounded-lg border border-gray-200 dark:border-gray-600 max-w-full">
+            <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
+              <FileText className="h-6 w-6 text-blue-600 dark:text-blue-400" />
             </div>
-          );
-        } else if (isImage) {
-          return (
-            <div className="relative">
-              <img
-                src={`${import.meta.env.VITE_BACKEND_URL}${message.fileUrl}`}
-                alt="Shared image"
-                className="max-w-full h-auto rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
-                onClick={() => window.open(`${import.meta.env.VITE_BACKEND_URL}${message.fileUrl}`, '_blank', 'noopener,noreferrer')}
-              />
-              {message.content && (
-                <p
-                  className="text-sm mt-2 break-words whitespace-pre-wrap"
-                  dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(message.content) }}
-                />
-              )}
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">
+                {message.fileName || 'Unknown File'}
+              </p>
+              <div className="flex items-center space-x-2 mt-1">
+                <a
+                  href={getFileUrl(message.fileUrl)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  download={message.fileName || 'file'}
+                  className="text-xs text-primary-600 hover:text-primary-700 dark:text-primary-400 font-medium hover:underline flex items-center space-x-1"
+                >
+                  <Download className="h-3 w-3" />
+                  <span>Download</span>
+                </a>
+              </div>
             </div>
-          );
-        } else {
-          return (
-            <div className="flex items-center space-x-2">
-              <a
-                href={`${import.meta.env.VITE_BACKEND_URL}${message.fileUrl}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-blue-600 dark:text-blue-400 underline break-all"
-                download={message.fileName}
-              >
-                📎 {message.fileName || 'Download file'}
-              </a>
-            </div>
-          );
-        }
+          </div>
+        );
       case 'sticker':
         return (
           <div className="relative">

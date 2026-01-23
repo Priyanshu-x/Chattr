@@ -12,28 +12,14 @@ const fs = require('fs'); // For file system operations
 router.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
 // Upload generic file
-router.post('/upload/file', upload.single('file'), validateFileUpload([
-  'application/pdf',
-  'application/msword',
-  'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-  'text/plain',
-  'image/jpeg',
-  'image/png',
-  'image/gif',
-  'video/mp4',
-  'audio/mpeg',
-  'application/zip',
-  'application/x-zip-compressed',
-  'application/x-rar-compressed',
-  'application/vnd.ms-excel',
-  'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-]), (req, res, next) => {
+router.post('/upload/file', upload.single('file'), (req, res, next) => {
   try {
     if (!req.file) {
       return res.status(400).json({ message: 'No file uploaded.' });
     }
+    // Return the full Cloudinary URL from req.file.path
     res.json({
-      fileUrl: `/uploads/${req.file.filename}`,
+      fileUrl: req.file.path,
       fileName: req.file.originalname,
       fileType: req.file.mimetype
     });
@@ -43,13 +29,13 @@ router.post('/upload/file', upload.single('file'), validateFileUpload([
 });
 
 // Upload image
-router.post('/upload/image', upload.single('image'), validateFileUpload(['image/jpeg', 'image/png', 'image/gif']), (req, res, next) => {
+router.post('/upload/image', upload.single('image'), (req, res, next) => {
   try {
     if (!req.file) {
       return res.status(400).json({ message: 'No image uploaded.' });
     }
     res.json({
-      fileUrl: `/uploads/${req.file.filename}`,
+      fileUrl: req.file.path,
       fileName: req.file.originalname
     });
   } catch (error) {
@@ -58,13 +44,13 @@ router.post('/upload/image', upload.single('image'), validateFileUpload(['image/
 });
 
 // Upload voice message
-router.post('/upload/voice', upload.single('voice'), validateFileUpload(['audio/mpeg', 'audio/wav', 'audio/ogg', 'audio/webm', 'audio/mp3']), (req, res, next) => {
+router.post('/upload/voice', upload.single('voice'), (req, res, next) => {
   try {
     if (!req.file) {
       return res.status(400).json({ message: 'No voice message uploaded.' });
     }
     res.json({
-      fileUrl: `/uploads/${req.file.filename}`,
+      fileUrl: req.file.path,
       fileName: req.file.originalname
     });
   } catch (error) {

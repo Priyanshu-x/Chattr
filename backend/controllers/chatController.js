@@ -165,10 +165,10 @@ exports.getPinnedMessages = async (req, res, next) => {
 exports.serveUploadedFile = (req, res, next) => {
 	try {
 		const { filename } = req.params;
-		const filePath = path.join(__dirname, '../safe-uploads', filename);
+		const filePath = path.join(__dirname, '../uploads', filename);
 
 		// Basic path traversal prevention
-		if (!path.normalize(filePath).startsWith(path.normalize(path.join(__dirname, '../safe-uploads')))) {
+		if (!path.normalize(filePath).startsWith(path.normalize(path.join(__dirname, '../uploads')))) {
 			throw new AppError('Access denied: Invalid file path.', 403);
 		}
 
