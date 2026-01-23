@@ -117,7 +117,7 @@ const MessageBubble = ({ message, isOwnMessage, showAvatar, onReply }) => {
         />
       )}
 
-      <div className={`flex flex-col ${isOwnMessage ? 'items-end' : 'items-start'} max-w-xs md:max-w-md`}>
+      <div className={`flex flex-col ${isOwnMessage ? 'items-end' : 'items-start'} max-w-[80%] sm:max-w-xs md:max-w-md`}>
         {/* Username and time */}
         {showAvatar && (
           <div className={`flex items-center space-x-2 mb-1 ${isOwnMessage ? 'flex-row-reverse space-x-reverse' : ''}`}>
