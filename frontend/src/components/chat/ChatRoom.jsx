@@ -1,15 +1,17 @@
-// frontend/src/components/chat/ChatRoom.jsx - WORKING VERSION
 import React, { useState, useEffect } from 'react';
 import { useSocket } from '../../context/SocketContext';
 import { useTheme } from '../../context/ThemeContext';
+import { useSnow } from '../../context/SnowContext';
 import MessageList from './MessageList';
 import MessageInput from './MessageInput';
 import UserJoin from '../ui/UserJoin';
-import { Users, Sun, Moon, Settings, X } from 'lucide-react';
+import { Users, Sun, Moon, Settings, X, CloudSnow } from 'lucide-react';
 
 const ChatRoom = () => {
   const { user, connected, onlineUsers } = useSocket();
   const { isDark, toggleTheme } = useTheme();
+  const { isSnowing, toggleSnow } = useSnow();
+
   const [showUserJoin, setShowUserJoin] = useState(!user);
   const [showSidebar, setShowSidebar] = useState(false);
   const [replyingTo, setReplyingTo] = useState(null);
@@ -40,7 +42,7 @@ const ChatRoom = () => {
       )}
 
       {/* Header */}
-      <header className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-4 py-3 flex items-center justify-between">
+      <header className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-4 py-3 flex items-center justify-between z-10 relative">
         <div className="flex items-center space-x-4">
           <h1 className="text-xl font-bold text-gray-900 dark:text-white">
             Anonymous Chat
@@ -52,6 +54,18 @@ const ChatRoom = () => {
         </div>
 
         <div className="flex items-center space-x-2">
+          {/* Snow Toggle */}
+          <button
+            onClick={toggleSnow}
+            className={`p-2 rounded-lg transition-colors ${isSnowing
+              ? 'text-blue-500 bg-blue-50 dark:bg-blue-900/20'
+              : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
+              }`}
+            title={isSnowing ? "Stop Snowing" : "Let it Snow"}
+          >
+            <CloudSnow className={`h-5 w-5 ${isSnowing ? 'animate-pulse' : ''}`} />
+          </button>
+
           <button
             onClick={() => setShowSidebar(!showSidebar)}
             className="p-2 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
