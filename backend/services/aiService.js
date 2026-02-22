@@ -80,13 +80,17 @@ class AIService {
                     });
 
                     const data = await response.json();
+
                     if (data.choices && data.choices[0]) {
                         let text = data.choices[0].message.content.trim();
                         // Remove common AI prefixes if they leaked
                         text = text.replace(/^(Kira|Assistant|KIRA):\s*/i, '');
                         return text;
                     }
-                    if (data.error) throw new Error(data.error.message || "OpenRouter Error");
+                    if (data.error) {
+                        console.error(`KIRA: OpenRouter Error Details (${modelId}):`, data.error);
+                        throw new Error(data.error.message || "OpenRouter Error");
+                    }
                 } catch (error) {
                     lastError = error;
                     console.log(`KIRA: OpenRouter ${modelId} failed:`, error.message);

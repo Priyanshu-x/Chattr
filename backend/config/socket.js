@@ -190,6 +190,7 @@ const initializeSocket = (server) => {
         const randomJoin = !isMentioned && !isCommand && hasTechKeyword && Math.random() < 0.05;
 
         if (process.env.KIRA_ENABLED === 'true' && (isMentioned || randomJoin || (isCommand && lowerContent.includes('kira')))) {
+          console.log('DEBUG: Kira trigger conditions met, starting AI timer...');
           setTimeout(async () => {
             try {
               const kiraUser = await ChatService.getKiraUser();
