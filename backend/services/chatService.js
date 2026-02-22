@@ -134,6 +134,25 @@ class ChatService {
 
     return user;
   }
+
+  /**
+   * Get or create the Kira bot user
+   * @returns {Promise<User>}
+   */
+  static async getKiraUser() {
+    let kira = await User.findOne({ username: 'Kira' });
+    if (!kira) {
+      kira = new User({
+        username: 'Kira',
+        avatar: 'https://api.dicebear.com/7.x/bottts/svg?seed=Kira&backgroundColor=b6e3f4',
+        joinedAt: new Date(2024, 0, 1), // Established bot
+        messageCount: 0,
+        ip: '127.0.0.1'
+      });
+      await kira.save();
+    }
+    return kira;
+  }
 }
 
 module.exports = ChatService;

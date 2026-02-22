@@ -109,7 +109,20 @@ const initializeSocket = (server) => {
           return; // Exit early
         }
 
-        // Create message using Service (handles sanitization)
+        // --- GLOBAL EASTER EGGS (Hidden Commands) ---
+        const lowerMsg = messageData.content?.toLowerCase().trim();
+        const globalEffects = {
+          'let it snow': { type: 'snow', duration: 15000 },
+          'dark mode': { type: 'dark', duration: 10000 },
+          'light mode': { type: 'light', duration: 10000 },
+          'glitch': { type: 'glitch', duration: 5000 }
+        };
+
+        if (globalEffects[lowerMsg]) {
+          io.emit('trigger-global-effect', globalEffects[lowerMsg]);
+          return; // STOP: Don't save or broadcast secret commands
+        }
+
         const message = await ChatService.createMessage({
           ...messageData,
           user: user._id
@@ -127,8 +140,7 @@ const initializeSocket = (server) => {
         user.lastActive = new Date();
         await user.save();
 
-        // Broadcast message to all users
-        io.emit('message-received', {
+        const messageDto = {
           _id: message._id,
           content: message.content,
           type: message.type,
@@ -139,9 +151,123 @@ const initializeSocket = (server) => {
           reactions: message.reactions,
           isPinned: message.isPinned,
           replyTo: message.replyTo
-        });
+        };
+
+        // Broadcast message to all users
+        io.emit('message-received', messageDto);
 
         logger.info(`Message from ${user.username}: ${message.type}`);
+
+        // --- KIRA AI INTEGRATION ---
+        const AIService = require('../services/aiService');
+        const lowerContent = message.content.toLowerCase();
+
+        // --- REACTION WARS (Randomly react to messages) ---
+        if (process.env.KIRA_ENABLED === 'true' && Math.random() < 0.15) { // 15% chance to react
+          setTimeout(async () => {
+            const kiraUser = await ChatService.getKiraUser();
+            const botEmojis = ['💅', '🙄', '🔥', '💻', '🌌', '🧠', '⚡', '🤖', '💀', '🤡'];
+            const randomEmoji = botEmojis[Math.floor(Math.random() * botEmojis.length)];
+
+            message.reactions.push({
+              emoji: randomEmoji,
+              user: kiraUser._id
+            });
+            await message.save();
+            io.emit('reaction-updated', {
+              messageId: message._id,
+              reactions: message.reactions
+            });
+          }, 2000);
+        }
+
+        const isMentioned = lowerContent.includes('@kira') || lowerContent.includes('kira');
+        const isCommand = message.content.startsWith('/');
+
+        // Random join-in logic (5% chance if tech keywords detected)
+        const techKeywords = ['react', 'node', 'js', 'bug', 'css', 'api', 'server', 'database', 'mongo', 'frontend', 'backend', 'space', 'quantum', 'nano', 'crypto', 'web3'];
+        const hasTechKeyword = techKeywords.some(kw => lowerContent.includes(kw));
+        const randomJoin = !isMentioned && !isCommand && hasTechKeyword && Math.random() < 0.05;
+
+        if (process.env.KIRA_ENABLED === 'true' && (isMentioned || randomJoin || (isCommand && lowerContent.includes('kira')))) {
+          setTimeout(async () => {
+            try {
+              const kiraUser = await ChatService.getKiraUser();
+              let aiResponse;
+
+              // Handle Secret Commands
+              if (message.content.startsWith('/kira glitch')) {
+                aiResponse = "01101000 01100101 01101100 01110000 00100000 01101101 01111001 00100000 01100011 01101111 01100100 01100101 00100000 01101001 01110011 00100000 01100010 01110010 01101111 01101011 01100101 01101110 00100000 01001100 01001101 01000001 01001111 00101110 00101110 00101110";
+              } else if (message.content.startsWith('/kira status')) {
+                const mood = await AIService.analyzeMood([message]);
+                aiResponse = `Systems optimal. Current mood: ${mood}. Sarcasm levels at 99%. 💅`;
+              } else if (message.content.startsWith('/kira roast')) {
+                const target = message.content.replace('/kira roast', '').trim() || user.username;
+                aiResponse = await AIService.generateResponse(`Roast this person named ${target} in your signature sarcastic tech style. Keep it short.`, []);
+              } else if (message.content.startsWith('/kira recap')) {
+                // Get messages from the last 24 hours
+                const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000);
+                const dayMessages = await Message.find({ createdAt: { $gte: yesterday } })
+                  .limit(20)
+                  .populate('user', 'username');
+
+                const summaryPrompt = `Recap these messages from the last 24 hours in your sarcastic tech-nerdy style. Be brief and judge the quality of discussion: ${dayMessages.map(m => `${m.user.username}: ${m.content}`).join(' | ')}`;
+                aiResponse = await AIService.generateResponse(summaryPrompt, []);
+              } else {
+                // Get recent context
+                const recentMessages = await Message.find()
+                  .sort({ createdAt: -1 })
+                  .limit(5)
+                  .populate('user', 'username');
+
+                const context = recentMessages.reverse().map(m => ({
+                  role: m.user.username === 'Kira' ? 'Kira' : 'User',
+                  username: m.user.username,
+                  content: m.content
+                }));
+
+                aiResponse = await AIService.generateResponse(message.content, context);
+              }
+
+              // Simulate typing
+              io.emit('user-typing', {
+                username: kiraUser.username,
+                avatar: kiraUser.avatar
+              });
+
+              // Stop typing after a delay
+              setTimeout(() => {
+                io.emit('user-stop-typing', { username: kiraUser.username });
+              }, 2500);
+
+              // Small delay to feel more human
+              setTimeout(async () => {
+                const kiraMessage = await ChatService.createMessage({
+                  content: aiResponse,
+                  user: kiraUser._id,
+                  type: 'text'
+                });
+
+                await kiraMessage.populate('user', 'username avatar');
+
+                io.emit('message-received', {
+                  _id: kiraMessage._id,
+                  content: kiraMessage.content,
+                  type: kiraMessage.type,
+                  user: kiraMessage.user,
+                  createdAt: kiraMessage.createdAt,
+                  reactions: kiraMessage.reactions
+                });
+              }, 3000);
+
+            } catch (aiErr) {
+              logger.error('Kira AI Error:', aiErr);
+            }
+          }, 1000);
+        }
+        // --- END KIRA AI INTEGRATION ---
+
+
       } catch (error) {
         logger.error('Error handling message:', error);
         const errorMessage = process.env.NODE_ENV === 'production'

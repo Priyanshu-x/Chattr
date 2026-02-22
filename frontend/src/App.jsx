@@ -9,6 +9,7 @@ import AdminProtectedRoute from './components/admin/AdminProtectedRoute'; // Imp
 
 import { SnowProvider } from './context/SnowContext';
 import SnowOverlay from './components/common/SnowOverlay';
+import GlobalAnimations from './components/chat/GlobalAnimations';
 
 function App() {
   return (
@@ -18,6 +19,7 @@ function App() {
           <Router>
             <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-300">
               <SnowOverlay />
+              <GlobalAnimations />
               <Routes>
                 <Route path="/" element={<ChatRoom />} />
                 <Route path="/admin" element={<AdminLogin />} />

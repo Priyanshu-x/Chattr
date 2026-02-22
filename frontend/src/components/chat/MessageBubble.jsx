@@ -125,6 +125,11 @@ const MessageBubble = ({ message, isOwnMessage, showAvatar, onReply }) => {
               className="text-xs font-medium text-gray-700 dark:text-gray-300"
               dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(isOwnMessage ? 'You' : message.user.username) }}
             />
+            {message.user.username === 'Kira' && (
+              <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-primary-500 text-white uppercase tracking-wider">
+                AI / KIRA
+              </span>
+            )}
             <span className="text-xs text-gray-500 dark:text-gray-400">
               {formatTime(message.createdAt)}
             </span>
