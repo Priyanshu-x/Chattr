@@ -189,7 +189,10 @@ const initializeSocket = (server) => {
         const hasTechKeyword = techKeywords.some(kw => lowerContent.includes(kw));
         const randomJoin = !isMentioned && !isCommand && hasTechKeyword && Math.random() < 0.05;
 
-        if (process.env.KIRA_ENABLED === 'true' && (isMentioned || randomJoin || (isCommand && lowerContent.includes('kira')))) {
+        const isKiraCommand = isCommand && lowerContent.startsWith('/kira');
+        const isKiraEnabled = process.env.KIRA_ENABLED === 'true';
+
+        if (isKiraCommand || (isKiraEnabled && (isMentioned || randomJoin))) {
           console.log('DEBUG: Kira trigger conditions met, starting AI timer...');
           setTimeout(async () => {
             try {
@@ -200,8 +203,14 @@ const initializeSocket = (server) => {
               if (message.content.startsWith('/kira glitch')) {
                 aiResponse = "01101000 01100101 01101100 01110000 00100000 01101101 01111001 00100000 01100011 01101111 01100100 01100101 00100000 01101001 01110011 00100000 01100010 01110010 01101111 01101011 01100101 01101110 00100000 01001100 01001101 01000001 01001111 00101110 00101110 00101110";
               } else if (message.content.startsWith('/kira status')) {
+                const diag = AIService.getDiagnostics();
                 const mood = await AIService.analyzeMood([message]);
-                aiResponse = `Systems optimal. Current mood: ${mood}. Sarcasm levels at 99%. 💅`;
+                aiResponse = `[DIAGNOSTICS]\n` +
+                  `• Enabled: ${diag.kiraEnabled ? '✅' : '❌'}\n` +
+                  `• OpenRouter: ${diag.openRouterKeySet ? '✅' : '❌'}\n` +
+                  `• Gemini: ${diag.geminiKeySet ? '✅' : '❌'}\n` +
+                  `• Env: ${diag.env}\n` +
+                  `Current Mood: ${mood}. Feed me more tech talk. 💅`;
               } else if (message.content.startsWith('/kira roast')) {
                 const target = message.content.replace('/kira roast', '').trim() || user.username;
                 aiResponse = await AIService.generateResponse(`Roast this person named ${target} in your signature sarcastic tech style. Keep it short.`, []);

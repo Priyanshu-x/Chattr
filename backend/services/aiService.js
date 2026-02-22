@@ -132,6 +132,16 @@ class AIService {
         if (text.length < 50) return 'Bored';
         return 'Normal';
     }
+
+    getDiagnostics() {
+        return {
+            kiraEnabled: process.env.KIRA_ENABLED === 'true',
+            openRouterKeySet: !!this.openRouterKey,
+            geminiKeySet: !!this.geminiKey,
+            nodeVersion: process.version,
+            env: process.env.NODE_ENV
+        };
+    }
 }
 
 module.exports = new AIService();
