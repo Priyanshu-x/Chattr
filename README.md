@@ -1,9 +1,18 @@
 
-https://gc-fi37.onrender.com/
+https://chattr-x.onrender.com/
+![Chattr](chattr.png)
 # Chattr 💬✨
 A modern, real-time chat application with a sleek UI/UX, featuring a distinctive C-shaped Pac-Man logo. Built with React, Node.js, Socket.io, and MongoDB.
 
 ## ✨ Features
+
+### 🤖 Kira AI (The God-Level Polymath)
+- **OpenRouter Integration**: Powered primarily by Gemini 2.0 Flash for maximum speed and reliability.
+- **Fail-safe Logic**: Automatic fallback to direct Google Gemini SDK if primary provider fails.
+- **Two-Mode Personality**: Switch between Casual (vibe-check) and Tech (expert) modes.
+- **Interactive Commands**: `/kira status`, `/kira roast`, `/kira recap`, and more.
+- **Random Join-in**: Kira intelligently jumps into tech discussions.
+
 
 ### 🎯 Core Features
 - **Anonymous Public Chat**: No signup required, just pick a username and start chatting
@@ -16,8 +25,9 @@ A modern, real-time chat application with a sleek UI/UX, featuring a distinctive
 - @@Typing Indicators**: Know when someone is typing
 
 ### 🎨 UI/UX Features
-- **Dark/Light Mode**: Toggle between themes
-- **Responsive Design**: Works perfectly on mobile, tablet, and desktop
+- **Easter Eggs**: Global animations triggered by secret phrases (`let it snow`, `glitch`, etc.).
+- **Dark/Light Mode**: Toggle between themes.
+- **Responsive Design**: Works perfectly on mobile, tablet, and desktop (optimized with `h-dvh`).
 - **Smooth Animations**: Framer Motion powered animations
 - **Modern Design**: Clean, vibrant interface with Tailwind CSS
 - **Voice Waveforms**: Visual waveform display for voice messages
@@ -34,21 +44,22 @@ A modern, real-time chat application with a sleek UI/UX, featuring a distinctive
 ## 🛠️ Tech Stack
 
 ### Backend
-- **Node.js** with Express.js
+- **Node.js 18+** with Express.js
 - **Socket.io** for real-time communication
-- **MongoDB** with Mongoose
+- **MongoDB Atlas** for database
+- **OpenRouter API** (Primary AI - Gemini 2.0 Flash)
+- **Google Gemini SDK** (Fallback AI)
+- **Cloudinary** for persistent media & file storage
 - **JWT** for admin authentication
-- **Multer** for file uploads
-- **bcryptjs** for password hashing
+- **Bcryptjs** for password security
 
 ### Frontend
 - **React 18** with Vite
 - **Tailwind CSS** for styling
-- **Socket.io Client** for real-time communication
 - **Framer Motion** for animations
-- **React Router** for navigation
-- **Axios** for API calls
+- **Socket.io Client**
 - **Lucide React** for icons
+- **Canvas API** for global animations (snow, etc.)
 
 ## 🚀 Quick Start
 
@@ -62,8 +73,8 @@ Make sure you have installed:
 
 1. **Clone the repository**
 ```bash
-git clone https://github.com/yourusername/anonymous-chat-app.git
-cd anonymous-chat-app
+git clone https://github.com/Priyanshu-x/Chattr.git
+cd Chattr
 ```
 
 2. **Set up the Backend**
@@ -156,12 +167,23 @@ anonymous-chat-app/
 # Server Configuration
 PORT=5000
 NODE_ENV=development
+CLIENT_URL=http://localhost:5173
 
 # Database
-MONGODB_URI=mongodb://localhost:27017/anonymous-chat
+MONGODB_URI=mongodb+srv://...
+
+# Kira AI Configuration
+KIRA_ENABLED=true
+OPENROUTER_API_KEY=sk-or-v1-...
+GEMINI_API_KEY=AIzaSyA...
+
+# Cloudinary Configuration
+CLOUDINARY_CLOUD_NAME=...
+CLOUDINARY_API_KEY=...
+CLOUDINARY_API_SECRET=...
 
 # JWT Secret (Change in production!)
-JWT_SECRET=your-super-secret-jwt-key-change-this-in-production
+JWT_SECRET=your-super-secret-key
 
 # Default Admin Credentials
 ADMIN_USERNAME=admin
