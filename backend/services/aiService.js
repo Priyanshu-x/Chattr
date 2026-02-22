@@ -33,19 +33,70 @@ GENERAL RULES:
 
 class AIService {
     constructor() {
-        this.model = genAI.getGenerativeModel({ model: "gemini-1.5-flash-latest" });
+        this.openRouterKey = process.env.OPENROUTER_API_KEY;
+        this.geminiKey = process.env.GEMINI_API_KEY;
     }
 
     async generateResponse(userMessage, context = []) {
-        // Verified working models for this specific API key/region
-        const modelsToTry = [
+        // High-quality models via OpenRouter (Primary)
+        const openRouterModels = [
+            "google/gemini-2.0-flash-001",
+            "google/gemini-pro-1.5",
+            "meta-llama/llama-3.3-70b-instruct"
+        ];
+
+        // Backup models via direct Google SDK
+        const backupModels = [
             "gemini-flash-latest",
-            "gemma-3-4b-it",
             "gemini-pro-latest"
         ];
+
         let lastError;
 
-        for (const modelName of modelsToTry) {
+        // 1. Try OpenRouter first
+        if (this.openRouterKey) {
+            for (const modelId of openRouterModels) {
+                try {
+                    console.log(`KIRA: Trying OpenRouter model ${modelId}...`);
+                    const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+                        method: "POST",
+                        headers: {
+                            "Authorization": `Bearer ${this.openRouterKey}`,
+                            "HTTP-Referer": "http://localhost:3000",
+                            "X-Title": "Chattr",
+                            "Content-Type": "application/json"
+                        },
+                        body: JSON.stringify({
+                            "model": modelId,
+                            "messages": [
+                                { "role": "system", "content": KIRA_SYSTEM_PROMPT },
+                                ...context.map(msg => ({
+                                    role: msg.username === 'Kira' ? 'assistant' : 'user',
+                                    content: `${msg.username}: ${msg.content}`
+                                })),
+                                { "role": "user", "content": userMessage }
+                            ]
+                        })
+                    });
+
+                    const data = await response.json();
+                    if (data.choices && data.choices[0]) {
+                        let text = data.choices[0].message.content.trim();
+                        // Remove common AI prefixes if they leaked
+                        text = text.replace(/^(Kira|Assistant|KIRA):\s*/i, '');
+                        return text;
+                    }
+                    if (data.error) throw new Error(data.error.message || "OpenRouter Error");
+                } catch (error) {
+                    lastError = error;
+                    console.log(`KIRA: OpenRouter ${modelId} failed:`, error.message);
+                }
+            }
+        }
+
+        // 2. Fallback to Gemini SDK
+        console.log("KIRA: Falling back to direct Gemini SDK...");
+        for (const modelName of backupModels) {
             try {
                 this.model = genAI.getGenerativeModel({ model: modelName });
 
@@ -57,52 +108,24 @@ class AIService {
 
                 const result = await this.model.generateContent(fullPrompt);
                 const response = await result.response;
-                let text = response.text().trim();
-                text = text.replace(/```/g, '');
-                return text;
+                return response.text().trim().replace(/```/g, '');
             } catch (error) {
                 lastError = error;
-                const errorStr = error.toString().toLowerCase();
-                const status = error.status || (errorStr.includes('404') ? 404 : errorStr.includes('429') ? 429 : 500);
-
-                if (status === 404) {
-                    console.log(`KIRA: ${modelName} failed with 404, trying next...`);
-                    continue;
-                }
-
-                if (status === 429) {
-                    console.log(`KIRA: ${modelName} hit quota limit (429), trying next...`);
-                    continue;
-                }
-
-                break; // Stop if it's a critical error (like Auth)
+                console.log(`KIRA: Backup Gemini ${modelName} failed:`, error.message);
             }
         }
 
-        // If we get here, all models failed
-        console.error('KIRA AI ERROR DETAILS:', lastError);
+        // 3. Final Error Handling
+        console.error('KIRA AI FATAL ERROR:', lastError);
         logger.error('Error generating AI response:', lastError);
 
-        if (lastError?.message?.includes('429') || lastError?.status === 429) {
-            return "ite, y'all r talking too much. i'm on a free tier here. wait a minute or buy me some compute. 🙄";
-        }
-
-        if (lastError?.message?.includes('API key not valid')) {
-            return "ite, u gave me a fake API key. skill issue. tell the admin to git gud. 🙄";
-        }
-
-        return "ite, my circuits r frying. legacy code issues. try again later. 🙄";
+        if (lastError?.message?.includes('429')) return "ite, y'all r talking too much. even my shadow servers r hitting limits. 🙄";
+        return "ite, my brain is strictly offline rn. maybe try again when the ether settles. 🙄";
     }
 
-    /**
-     * Analyze sentiment of the chat to determine Kira's "Mood"
-     * Returns: 'Normal', 'Bored', 'Annoyed', 'Safe'
-     */
     async analyzeMood(messages) {
-        // Simple heuristic for now, or use Gemini for complex detection
         const text = messages.map(m => m.content).join(' ');
         if (text.length < 50) return 'Bored';
-        if (text.includes('?')) return 'Normal';
         return 'Normal';
     }
 }
