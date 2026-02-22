@@ -1,7 +1,14 @@
 const { GoogleGenerativeAI } = require('@google/generative-ai');
 const logger = require('../utils/logger');
 
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+// Lazy initialization for Gemini SDK
+let genAI;
+const getGenAI = () => {
+    if (!genAI && process.env.GEMINI_API_KEY) {
+        genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+    }
+    return genAI;
+};
 
 const KIRA_SYSTEM_PROMPT = `
 You are Kira, a cool, witty, and highly intelligent member of a public chat app called Chattr.
@@ -107,24 +114,28 @@ class AIService {
 
         // 2. Fallback to Gemini SDK
         console.log("KIRA: Falling back to direct Gemini SDK...");
-        for (const modelName of backupModels) {
-            try {
-                if (!this.geminiKey) break;
-                this.model = genAI.getGenerativeModel({ model: modelName });
+        const sdk = getGenAI();
+        if (sdk) {
+            for (const modelName of backupModels) {
+                try {
+                    this.model = sdk.getGenerativeModel({ model: modelName });
 
-                const historyPrompt = context.length > 0
-                    ? "\nRECENT CHAT HISTORY:\n" + context.map(msg => `${msg.username}: ${msg.content}`).join('\n')
-                    : "";
+                    const historyPrompt = context.length > 0
+                        ? "\nRECENT CHAT HISTORY:\n" + context.map(msg => `${msg.username}: ${msg.content}`).join('\n')
+                        : "";
 
-                const fullPrompt = `${KIRA_SYSTEM_PROMPT}${historyPrompt}\n\nUSER MESSAGE: ${userMessage}\nKIRA:`;
+                    const fullPrompt = `${KIRA_SYSTEM_PROMPT}${historyPrompt}\n\nUSER MESSAGE: ${userMessage}\nKIRA:`;
 
-                const result = await this.model.generateContent(fullPrompt);
-                const response = await result.response;
-                return response.text().trim().replace(/```/g, '');
-            } catch (error) {
-                lastError = error;
-                console.error(`KIRA ERROR [Gemini SDK - ${modelName}]:`, error.message);
+                    const result = await this.model.generateContent(fullPrompt);
+                    const response = await result.response;
+                    return response.text().trim().replace(/```/g, '');
+                } catch (error) {
+                    lastError = error;
+                    console.error(`KIRA ERROR [Gemini SDK - ${modelName}]:`, error.message);
+                }
             }
+        } else {
+            console.log("KIRA: Gemini fallback unavailable (no key).");
         }
 
         // 3. Final Error Handling

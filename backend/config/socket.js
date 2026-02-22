@@ -24,6 +24,13 @@ const initializeSocket = (server) => {
     pingInterval: 25000
   });
 
+  console.log('--- KIRA DIAGNOSTICS ---');
+  console.log('KIRA_ENABLED:', process.env.KIRA_ENABLED);
+  console.log('OPENROUTER_KEY_PRESENT:', !!process.env.OPENROUTER_API_KEY);
+  console.log('GEMINI_KEY_PRESENT:', !!process.env.GEMINI_API_KEY);
+  console.log('NODE_ENV:', process.env.NODE_ENV);
+  console.log('------------------------');
+
   io.on('connection', (socket) => {
     logger.info(`User connected: ${socket.id}`);
 
@@ -184,12 +191,15 @@ const initializeSocket = (server) => {
         const isMentioned = lowerContent.includes('@kira') || lowerContent.includes('kira');
         const isCommand = message.content.startsWith('/');
 
+        const isKiraEnabled = String(process.env.KIRA_ENABLED).toLowerCase() === 'true';
+
         // Random join-in logic (5% chance if tech keywords detected)
         const techKeywords = ['react', 'node', 'js', 'bug', 'css', 'api', 'server', 'database', 'mongo', 'frontend', 'backend', 'space', 'quantum', 'nano', 'crypto', 'web3'];
         const hasTechKeyword = techKeywords.some(kw => lowerContent.includes(kw));
         const randomJoin = !isMentioned && !isCommand && hasTechKeyword && Math.random() < 0.05;
 
-        if (process.env.KIRA_ENABLED === 'true' && (isMentioned || randomJoin || (isCommand && lowerContent.includes('kira')))) {
+        if (isKiraEnabled && (isMentioned || randomJoin || (isCommand && lowerContent.includes('kira')))) {
+          console.log(`KIRA: Triggered by ${user.username} (Mentioned: ${isMentioned}, Msg: "${message.content.substring(0, 20)}...")`);
           setTimeout(async () => {
             try {
               const kiraUser = await ChatService.getKiraUser();
@@ -262,6 +272,15 @@ const initializeSocket = (server) => {
 
             } catch (aiErr) {
               logger.error('Kira AI Error:', aiErr);
+              // Send a visible error message back to the chat so we know it's failing
+              const kiraUser = await ChatService.getKiraUser();
+              io.emit('message-received', {
+                _id: 'error-' + Date.now(),
+                content: "ite, my brain is hitting a 404/500 combo. check the server logs, i'm strictly offline until fixed. 🙄",
+                type: 'text',
+                user: { username: 'Kira', avatar: kiraUser.avatar },
+                createdAt: new Date()
+              });
             }
           }, 1000);
         }
