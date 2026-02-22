@@ -2,28 +2,23 @@ require('dotenv').config();
 const { GoogleGenerativeAI } = require('@google/generative-ai');
 
 async function listModels() {
+    const key = process.env.GEMINI_API_KEY;
+    console.log(`Testing Gemini Key: ${key?.substring(0, 10)}...`);
     try {
-        const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-        // Use the listModels method to get available models
-        // Note: This might require specific API permissions but usually works for free tier keys.
-        const url = `https://generativelanguage.googleapis.com/v1beta/models?key=${process.env.GEMINI_API_KEY}`;
-        const response = await fetch(url);
-        const data = await response.json();
-
-        console.log("AVAILABLE MODELS:");
-        if (data.models) {
-            data.models.forEach(m => {
-                if (m.supportedGenerationMethods.includes('generateContent')) {
-                    console.log(`- ${m.name.split('/').pop()} (Supported)`);
-                } else {
-                    console.log(`- ${m.name.split('/').pop()} (No generateContent)`);
-                }
-            });
-        } else {
-            console.log("No models found or error in response:", data);
+        const genAI = new GoogleGenerativeAI(key);
+        // We use a simple model.listModels call if available or just try a few known ones
+        const models = ["gemini-1.5-flash", "gemini-1.5-pro", "gemini-pro", "gemini-flash-latest"];
+        for (const m of models) {
+            try {
+                const model = genAI.getGenerativeModel({ model: m });
+                await model.generateContent("test");
+                console.log(`✅ Model ${m} is WORKING.`);
+            } catch (e) {
+                console.log(`❌ Model ${m} failed: ${e.message}`);
+            }
         }
-    } catch (err) {
-        console.error("Diagnostic failed:", err);
+    } catch (e) {
+        console.log("Fatal Gemini Error:", e.message);
     }
 }
 
