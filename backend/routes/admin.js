@@ -108,6 +108,28 @@ router.post('/users/:userId/kick', adminAuth, validateObjectId('userId'), async 
   }
 });
 
+// Bulk delete messages
+router.post('/messages/bulk-delete', adminAuth, async (req, res, next) => {
+  try {
+    const { messageIds } = req.body;
+
+    if (!Array.isArray(messageIds) || messageIds.length === 0) {
+      throw new Error('No message IDs provided', 400);
+    }
+
+    await Message.deleteMany({ _id: { $in: messageIds } });
+
+    // Emit bulk deletion to all clients
+    const { getIO } = require('../config/socket');
+    const io = getIO();
+    io.emit('messages-deleted-bulk', { messageIds });
+
+    res.json({ message: `${messageIds.length} messages deleted successfully` });
+  } catch (error) {
+    next(error);
+  }
+});
+
 // Delete message
 router.delete('/messages/:messageId', adminAuth, validateObjectId('messageId'), async (req, res, next) => {
   try {

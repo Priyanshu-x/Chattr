@@ -197,6 +197,8 @@ const AdminDashboard = () => {
 const MessageManagement = () => {
   const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [selectedIds, setSelectedIds] = useState([]);
+  const [isBulkDeleting, setIsBulkDeleting] = useState(false);
 
   useEffect(() => {
     const fetchMessages = async () => {
@@ -219,9 +221,26 @@ const MessageManagement = () => {
     try {
       await api.delete(`/api/admin/messages/${messageId}`);
       setMessages(prev => prev.filter(msg => msg._id !== messageId));
-      alert('Message deleted successfully');
+      setSelectedIds(prev => prev.filter(id => id !== messageId));
     } catch (error) {
       alert('Failed to delete message');
+    }
+  };
+
+  const handleBulkDelete = async () => {
+    if (selectedIds.length === 0) return;
+    if (!confirm(`Are you sure you want to delete ${selectedIds.length} messages?`)) return;
+
+    setIsBulkDeleting(true);
+    try {
+      await api.post('/api/admin/messages/bulk-delete', { messageIds: selectedIds });
+      setMessages(prev => prev.filter(msg => !selectedIds.includes(msg._id)));
+      setSelectedIds([]);
+      alert(`${selectedIds.length} messages deleted successfully`);
+    } catch (error) {
+      alert('Failed to delete messages');
+    } finally {
+      setIsBulkDeleting(false);
     }
   };
 
@@ -231,9 +250,22 @@ const MessageManagement = () => {
       setMessages(prev => prev.map(msg =>
         msg._id === messageId ? { ...msg, isPinned: !isPinned } : msg
       ));
-      alert(`Message ${!isPinned ? 'pinned' : 'unpinned'} successfully`);
     } catch (error) {
       alert('Failed to update message');
+    }
+  };
+
+  const toggleSelect = (id) => {
+    setSelectedIds(prev =>
+      prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]
+    );
+  };
+
+  const toggleSelectAll = () => {
+    if (selectedIds.length === messages.length) {
+      setSelectedIds([]);
+    } else {
+      setSelectedIds(messages.map(m => m._id));
     }
   };
 
@@ -247,62 +279,106 @@ const MessageManagement = () => {
 
   return (
     <div className="p-6">
-      <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-        Recent Messages ({messages.length})
-      </h3>
-      <div className="space-y-4 max-h-96 overflow-y-auto custom-scrollbar">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+        <div>
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+            Recent Messages ({messages.length})
+          </h3>
+          <p className="text-sm text-gray-500 dark:text-gray-400">
+            {selectedIds.length} messages selected
+          </p>
+        </div>
+        <div className="flex items-center space-x-3">
+          <button
+            onClick={toggleSelectAll}
+            className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+          >
+            {selectedIds.length === messages.length ? 'Deselect All' : 'Select All'}
+          </button>
+          <button
+            onClick={handleBulkDelete}
+            disabled={selectedIds.length === 0 || isBulkDeleting}
+            className="flex items-center space-x-2 px-4 py-2 bg-red-600 hover:bg-red-700 disabled:bg-gray-400 text-white text-sm font-medium rounded-lg transition-colors disabled:cursor-not-allowed"
+          >
+            <Trash2 className="h-4 w-4" />
+            <span>{isBulkDeleting ? 'Deleting...' : 'Delete Selected'}</span>
+          </button>
+        </div>
+      </div>
+
+      <div className="space-y-4 max-h-[600px] overflow-y-auto custom-scrollbar pr-2">
         {messages.map((message) => {
           if (!message.user) return null;
+          const isSelected = selectedIds.includes(message._id);
           return (
-            <div key={message._id} className="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
-              <div className="flex items-start justify-between">
-                <div className="flex-1">
-                  <div className="flex items-center space-x-3 mb-2">
-                    <img
-                      src={DOMPurify.sanitize(message.user.avatar)}
-                      alt={DOMPurify.sanitize(message.user.username)}
-                      className="w-8 h-8 rounded-full"
-                    />
-                    <div>
-                      <p
-                        className="font-medium text-gray-900 dark:text-white"
-                      >
-                        {DOMPurify.sanitize(message.user.username)}
-                      </p>
-                      <p className="text-xs text-gray-500 dark:text-gray-400">
-                        {new Date(message.createdAt).toLocaleString()}
-                      </p>
+            <div
+              key={message._id}
+              className={`border rounded-lg p-4 transition-colors ${isSelected
+                ? 'border-red-500 bg-red-50 dark:bg-red-900/10'
+                : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
+                }`}
+              onClick={() => toggleSelect(message._id)}
+            >
+              <div className="flex items-start">
+                <div className="flex items-center h-5 mr-4 mt-2" onClick={(e) => e.stopPropagation()}>
+                  <input
+                    type="checkbox"
+                    checked={isSelected}
+                    onChange={() => toggleSelect(message._id)}
+                    className="w-4 h-4 text-red-600 border-gray-300 rounded focus:ring-red-500"
+                  />
+                </div>
+                <div className="flex-1 min-w-0" onClick={(e) => e.stopPropagation()}>
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center space-x-3 truncate">
+                      <img
+                        src={DOMPurify.sanitize(message.user.avatar)}
+                        alt={DOMPurify.sanitize(message.user.username)}
+                        className="w-8 h-8 rounded-full flex-shrink-0"
+                      />
+                      <div className="truncate">
+                        <p className="font-medium text-gray-900 dark:text-white truncate">
+                          {DOMPurify.sanitize(message.user.username)}
+                        </p>
+                        <p className="text-xs text-gray-500 dark:text-gray-400">
+                          {new Date(message.createdAt).toLocaleString()}
+                        </p>
+                      </div>
+                      {message.isPinned && (
+                        <span className="bg-yellow-100 dark:bg-yellow-900/20 text-yellow-800 dark:text-yellow-200 px-2 py-0.5 rounded-full text-[10px] font-medium flex-shrink-0">
+                          Pinned
+                        </span>
+                      )}
                     </div>
-                    {message.isPinned && (
-                      <span className="bg-yellow-100 dark:bg-yellow-900/20 text-yellow-800 dark:text-yellow-200 px-2 py-1 rounded-full text-xs font-medium">
-                        Pinned
-                      </span>
-                    )}
+                    <div className="flex space-x-1 ml-4">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          togglePin(message._id, message.isPinned);
+                        }}
+                        className={`p-1.5 rounded-lg transition-colors ${message.isPinned
+                          ? 'bg-yellow-100 dark:bg-yellow-900/20 text-yellow-600 dark:text-yellow-400'
+                          : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-600'
+                          }`}
+                        title={message.isPinned ? 'Unpin message' : 'Pin message'}
+                      >
+                        <Pin className="h-3.5 w-3.5" />
+                      </button>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          deleteMessage(message._id);
+                        }}
+                        className="p-1.5 bg-red-100 dark:bg-red-900/20 text-red-600 dark:text-red-400 rounded-lg hover:bg-red-200 dark:hover:bg-red-900/40 transition-colors"
+                        title="Delete message"
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </button>
+                    </div>
                   </div>
-                  <p
-                    className="text-gray-700 dark:text-gray-300 break-words"
-                  >
+                  <p className="text-gray-700 dark:text-gray-300 break-words text-sm ml-11">
                     {DOMPurify.sanitize(message.content || `[${message.type} message]`)}
                   </p>
-                </div>
-                <div className="flex space-x-2 ml-4">
-                  <button
-                    onClick={() => togglePin(message._id, message.isPinned)}
-                    className={`p-2 rounded-lg transition-colors ${message.isPinned
-                      ? 'bg-yellow-100 dark:bg-yellow-900/20 text-yellow-600 dark:text-yellow-400'
-                      : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-600'
-                      }`}
-                    title={message.isPinned ? 'Unpin message' : 'Pin message'}
-                  >
-                    <Pin className="h-4 w-4" />
-                  </button>
-                  <button
-                    onClick={() => deleteMessage(message._id)}
-                    className="p-2 bg-red-100 dark:bg-red-900/20 text-red-600 dark:text-red-400 rounded-lg hover:bg-red-200 dark:hover:bg-red-900/40 transition-colors"
-                    title="Delete message"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </button>
                 </div>
               </div>
             </div>

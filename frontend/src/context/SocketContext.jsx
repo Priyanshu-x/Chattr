@@ -108,6 +108,33 @@ export const SocketProvider = ({ children }) => {
       ));
     });
 
+    socket.on('message-deleted', ({ messageId }) => {
+      console.log('🗑️ Message deleted:', messageId);
+      setMessages(prev => prev.filter(msg => msg._id !== messageId));
+    });
+
+    socket.on('messages-deleted-bulk', ({ messageIds }) => {
+      console.log('🗑️ Bulk messages deleted:', messageIds.length);
+      setMessages(prev => prev.filter(msg => !messageIds.includes(msg._id)));
+    });
+
+    socket.on('admin-announcement', (announcement) => {
+      console.log('📣 New announcement:', announcement);
+      const systemMessage = {
+        _id: `announcement-${Date.now()}`,
+        type: 'announcement',
+        content: announcement.content,
+        announcementType: announcement.type || 'info', // info, warning, danger
+        createdAt: announcement.timestamp || new Date(),
+        user: {
+          _id: 'system',
+          username: 'System',
+          avatar: 'https://cdn-icons-png.flaticon.com/512/4712/4712139.png'
+        }
+      };
+      setMessages(prev => [...prev, systemMessage]);
+    });
+
     socket.on('user-typing', (user) => {
       setTypingUsers(prev => {
         if (!prev.find(u => u.username === user.username)) {
@@ -138,6 +165,9 @@ export const SocketProvider = ({ children }) => {
       socket.off('user-joined');
       socket.off('user-left');
       socket.off('reaction-updated');
+      socket.off('message-deleted');
+      socket.off('messages-deleted-bulk');
+      socket.off('admin-announcement');
       socket.off('user-typing');
       socket.off('user-stop-typing');
     };

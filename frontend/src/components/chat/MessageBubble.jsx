@@ -95,16 +95,38 @@ const MessageBubble = ({ message, isOwnMessage, showAvatar, onReply }) => {
             </div>
           </div>
         );
-      case 'sticker':
+      case 'announcement':
+        const bgStyles = {
+          info: 'bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 border-blue-200 dark:border-blue-800',
+          warning: 'bg-yellow-50 dark:bg-yellow-900/20 text-yellow-700 dark:text-yellow-300 border-yellow-200 dark:border-yellow-800',
+          danger: 'bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300 border-red-200 dark:border-red-800'
+        }[message.announcementType] || 'bg-gray-50 dark:bg-gray-800 text-gray-700 dark:text-gray-300 border-gray-200 dark:border-gray-700';
+
         return (
-          <div className="relative">
-            <div className="text-4xl">{message.content}</div>
+          <div className={`w-full py-3 px-6 rounded-xl text-center font-medium border shadow-sm ${bgStyles}`}>
+            <div className="flex items-center justify-center space-x-2">
+              <span className="text-lg">📢</span>
+              <p
+                className="text-sm sm:text-base break-words"
+                dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(message.content) }}
+              />
+            </div>
           </div>
         );
       default:
         return <p className="text-sm">Unsupported message type</p>;
     }
   };
+
+  if (message.type === 'announcement') {
+    return (
+      <div className="flex justify-center w-full px-4 py-2">
+        <div className="max-w-2xl w-full">
+          {renderMessageContent()}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className={`flex items-end space-x-2 group ${isOwnMessage ? 'flex-row-reverse space-x-reverse' : ''}`}>
