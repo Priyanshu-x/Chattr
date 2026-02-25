@@ -96,6 +96,9 @@ export const SocketProvider = ({ children }) => {
     socket.on('user-info', (userInfo) => {
       console.log('ℹ️ Received user info:', userInfo);
       setUser(userInfo);
+      if (socketRef.current) {
+        socketRef.current.userId = userInfo._id;
+      }
     });
 
     socket.on('message-received', (message) => {
@@ -103,7 +106,8 @@ export const SocketProvider = ({ children }) => {
       setMessages(prev => [...prev, message]);
 
       // Browser Notification logic (Sound + Visual + Native)
-      if (document.visibilityState === 'hidden' && message.user?._id !== user?._id) {
+      // Note: We use Notification.permission directly to avoid stale state issues from the closure
+      if (document.visibilityState === 'hidden' && message.user?._id !== socketRef.current?.userId) {
 
         // 1. Play Sound
         try {
@@ -135,7 +139,7 @@ export const SocketProvider = ({ children }) => {
         window.addEventListener('focus', resetTitle);
 
         // 3. Native Notification
-        if (notificationPermission === 'granted') {
+        if (Notification.permission === 'granted') {
           const title = `Message Dekh Le ${message.user?.username || 'User'}`;
           const options = {
             body: message.content || `Sent a ${message.type || 'message'}`,
