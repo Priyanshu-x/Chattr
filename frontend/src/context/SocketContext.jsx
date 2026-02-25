@@ -113,7 +113,7 @@ export const SocketProvider = ({ children }) => {
         try {
           const notificationSound = new Howl({
             src: [bubbleAlert],
-            volume: 0.5
+            volume: 1.0
           });
           notificationSound.play();
         } catch (err) {

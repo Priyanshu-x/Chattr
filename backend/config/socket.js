@@ -148,9 +148,11 @@ const initializeSocket = (server) => {
 
         const globalEffects = {
           'let it snow': { type: 'snow', duration: 15000 },
-          'dark mode': { type: 'dark', duration: 10000 },
-          'light mode': { type: 'light', duration: 10000 },
-          'glitch': { type: 'glitch', duration: 5000 }
+          'dark mode': { type: 'dark', duration: 5000 },
+          'light mode': { type: 'light', duration: 5000 },
+          'glitch': { type: 'glitch', duration: 5000 },
+          '/lockdown': { type: 'lockdown', duration: 30000 },
+          '/scan': { type: 'scan', duration: 10000 }
         };
 
         if (globalEffects[lowerMsg]) {
