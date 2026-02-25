@@ -10,6 +10,14 @@ const UserManagement = () => {
   const [actionLoading, setActionLoading] = useState(null);
   const [blockedIps, setBlockedIps] = useState([]);
 
+  const [searchTerm, setSearchTerm] = useState('');
+
+  const filteredUsers = users.filter(user =>
+    user.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (user.ip && user.ip.includes(searchTerm)) ||
+    user._id.includes(searchTerm)
+  );
+
   useEffect(() => {
     const fetchUsers = async () => {
       try {
@@ -110,9 +118,20 @@ const UserManagement = () => {
 
   return (
     <div className="p-6">
-      <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-        Active Users ({users.length})
-      </h3>
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+        <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+          Active Users ({filteredUsers.length})
+        </h3>
+        <div className="w-full md:w-64">
+          <input
+            type="text"
+            placeholder="Search users or IPs..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent text-sm"
+          />
+        </div>
+      </div>
 
       <div className="overflow-x-auto">
         <table className="w-full text-sm text-left text-gray-500 dark:text-gray-400">
@@ -127,7 +146,7 @@ const UserManagement = () => {
             </tr>
           </thead>
           <tbody>
-            {users.map((user) => (
+            {filteredUsers.map((user) => (
               <tr key={user._id} className="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
                 <td className="px-6 py-4">
                   <div className="flex items-center space-x-3">

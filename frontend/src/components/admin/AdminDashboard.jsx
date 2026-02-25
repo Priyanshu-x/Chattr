@@ -13,7 +13,9 @@ import {
   Shield,
   Send,
   Pin,
-  Trash2
+  Trash2,
+  Activity,
+  Cpu
 } from 'lucide-react';
 import api from '../../utils/api';
 import DOMPurify from 'dompurify'; // Import DOMPurify
@@ -22,6 +24,7 @@ const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState('stats');
   const [adminUser, setAdminUser] = useState(null);
   const [announcement, setAnnouncement] = useState('');
+  const [announcementType, setAnnouncementType] = useState('info');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
@@ -57,7 +60,7 @@ const AdminDashboard = () => {
     try {
       await api.post('/api/admin/announcement', {
         content: announcement,
-        type: 'info'
+        type: announcementType
       });
       setAnnouncement('');
       alert('Announcement sent successfully!');
@@ -73,6 +76,7 @@ const AdminDashboard = () => {
     { id: 'users', name: 'Users', icon: Users },
     { id: 'messages', name: 'Messages', icon: MessageSquare },
     { id: 'ipblocks', name: 'IP Blocks', icon: Shield },
+    { id: 'system', name: 'System', icon: Activity },
     { id: 'settings', name: 'Settings', icon: Settings }
   ];
 
@@ -156,9 +160,9 @@ const AdminDashboard = () => {
           </h2>
           <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4">
             <div className="flex flex-col md:flex-row items-end gap-4">
-              <div className="w-full">
+              <div className="flex-1 w-full">
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Send Announcement
+                  Notice Content
                 </label>
                 <textarea
                   value={announcement}
@@ -168,13 +172,27 @@ const AdminDashboard = () => {
                   className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent resize-none"
                 />
               </div>
+              <div className="w-full md:w-48">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Notice Type
+                </label>
+                <select
+                  value={announcementType}
+                  onChange={(e) => setAnnouncementType(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                >
+                  <option value="info">Info (Blue)</option>
+                  <option value="warning">Warning (Yellow)</option>
+                  <option value="danger">Danger (Red)</option>
+                </select>
+              </div>
               <button
                 onClick={sendAnnouncement}
                 disabled={!announcement.trim() || loading}
-                className="w-full md:w-auto flex items-center justify-center space-x-2 px-6 py-3 md:py-2 bg-primary-500 hover:bg-primary-600 disabled:bg-gray-400 text-white rounded-lg transition-colors disabled:cursor-not-allowed"
+                className="w-full md:w-auto h-[42px] flex items-center justify-center space-x-2 px-6 bg-primary-500 hover:bg-primary-600 disabled:bg-gray-400 text-white rounded-lg transition-colors disabled:cursor-not-allowed"
               >
                 <Send className="h-4 w-4" />
-                <span>{loading ? 'Sending...' : 'Send'}</span>
+                <span>{loading ? 'Broadcasting...' : 'Broadcast Announcement'}</span>
               </button>
             </div>
           </div>
@@ -186,6 +204,7 @@ const AdminDashboard = () => {
           {activeTab === 'users' && <UserManagement />}
           {activeTab === 'messages' && <MessageManagement />}
           {activeTab === 'ipblocks' && <IpBlockManagement />}
+          {activeTab === 'system' && <AdminDiagnostics />}
           {activeTab === 'settings' && <AdminSettings />}
         </div>
       </main>
@@ -193,12 +212,17 @@ const AdminDashboard = () => {
   );
 };
 
-// Message Management Component
 const MessageManagement = () => {
   const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedIds, setSelectedIds] = useState([]);
   const [isBulkDeleting, setIsBulkDeleting] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+
+  const filteredMessages = messages.filter(msg =>
+    msg.content?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    msg.user?.username.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   useEffect(() => {
     const fetchMessages = async () => {
@@ -280,34 +304,41 @@ const MessageManagement = () => {
   return (
     <div className="p-6">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
-        <div>
+        <div className="flex-1">
           <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-            Recent Messages ({messages.length})
+            Recent Messages ({filteredMessages.length})
           </h3>
           <p className="text-sm text-gray-500 dark:text-gray-400">
             {selectedIds.length} messages selected
           </p>
         </div>
         <div className="flex items-center space-x-3">
+          <input
+            type="text"
+            placeholder="Filter messages..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="w-full md:w-64 px-3 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent text-sm"
+          />
           <button
             onClick={toggleSelectAll}
-            className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+            className="whitespace-nowrap px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
           >
             {selectedIds.length === messages.length ? 'Deselect All' : 'Select All'}
           </button>
           <button
             onClick={handleBulkDelete}
             disabled={selectedIds.length === 0 || isBulkDeleting}
-            className="flex items-center space-x-2 px-4 py-2 bg-red-600 hover:bg-red-700 disabled:bg-gray-400 text-white text-sm font-medium rounded-lg transition-colors disabled:cursor-not-allowed"
+            className="whitespace-nowrap flex items-center space-x-2 px-4 py-2 bg-red-600 hover:bg-red-700 disabled:bg-gray-400 text-white text-sm font-medium rounded-lg transition-colors disabled:cursor-not-allowed"
           >
             <Trash2 className="h-4 w-4" />
-            <span>{isBulkDeleting ? 'Deleting...' : 'Delete Selected'}</span>
+            <span>{isBulkDeleting ? 'Delete' : 'Delete Selected'}</span>
           </button>
         </div>
       </div>
 
       <div className="space-y-4 max-h-[600px] overflow-y-auto custom-scrollbar pr-2">
-        {messages.map((message) => {
+        {filteredMessages.map((message) => {
           if (!message.user) return null;
           const isSelected = selectedIds.includes(message._id);
           return (
@@ -384,6 +415,110 @@ const MessageManagement = () => {
             </div>
           );
         })}
+      </div>
+    </div>
+  );
+};
+
+// Admin Diagnostics Component
+const AdminDiagnostics = () => {
+  const [data, setData] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchDiagnostics = async () => {
+      try {
+        const res = await api.get('/api/admin/system/diagnostics');
+        console.log('AdminDiagnostics Data:', res.data);
+        setData(res.data);
+      } catch (err) {
+        console.error('Failed to fetch diagnostics', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchDiagnostics();
+    const interval = setInterval(fetchDiagnostics, 10000);
+    return () => clearInterval(interval);
+  }, []);
+
+  if (loading) return <div className="p-10 text-center text-gray-500">Scanning system...</div>;
+  if (!data) return <div className="p-10 text-center text-red-500">Failed to load system data.</div>;
+
+  const formatBytes = (bytes) => {
+    if (!bytes || bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+  };
+
+  const formatUptime = (seconds) => {
+    if (!seconds) return '0d 0h 0m';
+    const d = Math.floor(seconds / (3600 * 24));
+    const h = Math.floor((seconds % (3600 * 24)) / 3600);
+    const m = Math.floor((seconds % 3600) / 60);
+    return `${d}d ${h}h ${m}m`;
+  };
+
+  return (
+    <div className="p-6">
+      <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-6">System Health & AI Diagnostics</h3>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* Server metrics */}
+        <div className="border border-gray-200 dark:border-gray-700 rounded-xl p-5">
+          <div className="flex items-center space-x-3 mb-4">
+            <Activity className="text-primary-500 h-5 w-5" />
+            <h4 className="font-medium">Server Status</h4>
+          </div>
+          <div className="space-y-4">
+            <div className="flex justify-between">
+              <span className="text-gray-500">Uptime</span>
+              <span className="font-mono text-sm">{formatUptime(data?.uptime)}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-gray-500">Memory (RSS)</span>
+              <span className="font-mono text-sm">{formatBytes(data?.memory?.rss)}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-gray-500">Heap Used</span>
+              <span className="font-mono text-sm">{formatBytes(data?.memory?.heapUsed)}</span>
+            </div>
+            <div className="flex justify-between text-xs text-gray-400 mt-2">
+              <span>Node Version</span>
+              <span>{data?.ai?.nodeVersion || 'Unknown'}</span>
+            </div>
+          </div>
+        </div>
+
+        {/* AI Metrics */}
+        <div className="border border-gray-200 dark:border-gray-700 rounded-xl p-5">
+          <div className="flex items-center space-x-3 mb-4">
+            <Cpu className="text-green-500 h-5 w-5" />
+            <h4 className="font-medium">Kira AI (Brain)</h4>
+          </div>
+          <div className="space-y-4">
+            <div className="flex justify-between items-center">
+              <span className="text-gray-500">Status</span>
+              <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${data?.ai?.kiraEnabled ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                {data?.ai?.kiraEnabled ? 'ONLINE' : 'OFFLINE'}
+              </span>
+            </div>
+            <div className="flex justify-between items-center">
+              <span className="text-gray-500">OpenRouter (Primary)</span>
+              <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${data?.ai?.openRouterKeySet ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-500'}`}>
+                {data?.ai?.openRouterKeySet ? 'CONFIGURED' : 'NOT SET'}
+              </span>
+            </div>
+            <div className="flex justify-between items-center">
+              <span className="text-gray-500">Gemini SDK (Backup)</span>
+              <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${data?.ai?.geminiKeySet ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-500'}`}>
+                {data?.ai?.geminiKeySet ? 'CONFIGURED' : 'NOT SET'}
+              </span>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );

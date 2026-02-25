@@ -10,23 +10,23 @@ const Joi = require('joi'); // Added Joi for validateObjectId
 const authenticateUser = async (req, res, next) => {
   try {
     const token = req.cookies.token; // Get token from HttpOnly cookie
-    
+
     if (!token) {
       throw new AppError('Access denied. No token provided.', 401);
     }
-    
+
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     const user = await User.findById(decoded.userId);
-    
+
     if (!user) {
       throw new AppError('Invalid token. User not found.', 401);
     }
-    
+
     // Check if user is banned
     if (user.isBanned && user.bannedUntil && user.bannedUntil > new Date()) {
       throw new AppError('User is banned', 403, { bannedUntil: user.bannedUntil, reason: user.banReason });
     }
-    
+
     req.user = user;
     next();
   } catch (error) {
@@ -41,32 +41,41 @@ const authenticateUser = async (req, res, next) => {
 };
 
 // Rate limiting middleware
-const rateLimitMiddleware = (maxRequests = 10, windowMs = 60000) => {
+const rateLimitMiddleware = (defaultMax = 10, defaultWindow = 60000) => {
   const requests = new Map();
-  
-  return (req, res, next) => {
-    const identifier = getIp(req);
-    const now = Date.now();
-    
-    if (!requests.has(identifier)) {
-      requests.set(identifier, { count: 1, resetTime: now + windowMs });
-      return next();
+  const GlobalSettings = require('../models/GlobalSettings');
+
+  return async (req, res, next) => {
+    try {
+      const settings = await GlobalSettings.getSettings();
+      const maxRequests = settings.rateLimitMessages || defaultMax;
+      const windowMs = (settings.rateLimitWindow * 1000) || defaultWindow;
+
+      const identifier = getIp(req);
+      const now = Date.now();
+
+      if (!requests.has(identifier)) {
+        requests.set(identifier, { count: 1, resetTime: now + windowMs });
+        return next();
+      }
+
+      const userRequests = requests.get(identifier);
+
+      if (now > userRequests.resetTime) {
+        userRequests.count = 1;
+        userRequests.resetTime = now + windowMs;
+        return next();
+      }
+
+      if (userRequests.count >= maxRequests) {
+        throw new AppError('Too many requests. Please try again later.', 429, { resetTime: userRequests.resetTime });
+      }
+
+      userRequests.count++;
+      next();
+    } catch (error) {
+      next(error);
     }
-    
-    const userRequests = requests.get(identifier);
-    
-    if (now > userRequests.resetTime) {
-      userRequests.count = 1;
-      userRequests.resetTime = now + windowMs;
-      return next();
-    }
-    
-    if (userRequests.count >= maxRequests) {
-      throw new AppError('Too many requests. Please try again later.', 429, { resetTime: userRequests.resetTime });
-    }
-    
-    userRequests.count++;
-    next();
   };
 };
 
@@ -97,17 +106,17 @@ const validateFileUpload = (allowedTypes, maxSize = 10 * 1024 * 1024) => {
     if (!req.file) {
       throw new AppError('No file uploaded', 400);
     }
-    
+
     // Check file type
     if (!allowedTypes.includes(req.file.mimetype)) {
       throw new AppError('Invalid file type', 400, { allowedTypes });
     }
-    
+
     // Check file size
     if (req.file.size > maxSize) {
       throw new AppError('File too large', 400, { maxSize: `${maxSize / (1024 * 1024)}MB` });
     }
-    
+
     next();
   };
 };
@@ -121,7 +130,7 @@ const corsOptions = {
       'http://localhost:8080',
       process.env.CLIENT_URL
     ].filter(Boolean);
-    
+
     if (!origin || allowedOrigins.includes(origin)) {
       callback(null, true);
     } else {

@@ -117,6 +117,23 @@ exports.pinMessage = async (req, res) => {
 	}
 };
 
+const aiService = require('../services/aiService');
+exports.getDiagnostics = async (req, res, next) => {
+	try {
+		const stats = {
+			activeUsers: await User.countDocuments(),
+			totalMessages: await Message.countDocuments(),
+			uptime: process.uptime(),
+			memory: process.memoryUsage(),
+			ai: aiService.getDiagnostics()
+		};
+		console.log('Admin Diagnostics requested:', JSON.stringify(stats, null, 2));
+		res.json(stats);
+	} catch (error) {
+		next(error);
+	}
+};
+
 const GlobalSettings = require('../models/GlobalSettings');
 
 exports.getSettings = async (req, res, next) => {

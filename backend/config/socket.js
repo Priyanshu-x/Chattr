@@ -35,11 +35,23 @@ const initializeSocket = (server) => {
         const ip = getIp(socket.handshake);
         logger.debug(`User IP: ${ip}`);
 
+        const GlobalSettings = require('../models/GlobalSettings');
+        const settings = await GlobalSettings.getSettings();
+
+        // 1. Check if IP is blocked
         const blocked = await BlockedIP.findOne({ ip });
         if (blocked) {
           logger.warn(`Blocked IP ${ip} attempted to join chat.`);
           socket.emit('error', { message: 'You are blocked from this chat.' });
-          socket.disconnect(true); // Force disconnect
+          socket.disconnect(true);
+          return;
+        }
+
+        // 2. Check if chat is full
+        if (activeUsers.size >= settings.maxUsersOnline) {
+          logger.warn(`Chat full. Rejected join request from ${userData.username}.`);
+          socket.emit('error', { message: 'Chat is currently at maximum capacity. Please try again later.' });
+          socket.disconnect(true);
           return;
         }
 

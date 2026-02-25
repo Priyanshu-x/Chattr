@@ -22,24 +22,10 @@ router.post('/logout', adminAuth, (req, res) => {
 });
 
 // Get admin stats
-router.get('/stats', adminAuth, async (req, res) => {
-  try {
-    const stats = {
-      activeUsers: await User.countDocuments(),
-      totalMessages: await Message.countDocuments(),
-      voiceMessages: await Message.countDocuments({ type: 'voice' }),
-      imageMessages: await Message.countDocuments({ type: 'image' }),
-      pinnedMessages: await Message.countDocuments({ isPinned: true }),
-      messagesLast24h: await Message.countDocuments({
-        createdAt: { $gte: new Date(Date.now() - 24 * 60 * 60 * 1000) }
-      })
-    };
+router.get('/stats', adminAuth, adminController.getStats);
 
-    res.json(stats);
-  } catch (error) {
-    next(error);
-  }
-});
+// Get system diagnostics
+router.get('/system/diagnostics', adminAuth, adminController.getDiagnostics);
 
 // Get all active users
 router.get('/users', adminAuth, async (req, res) => {
@@ -193,6 +179,50 @@ router.post('/announcement', adminAuth, validateInput(announcementSchema), async
     });
 
     res.json({ message: 'Announcement sent successfully' });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// Blocked IP Management
+router.get('/blocked-ips', adminAuth, async (req, res, next) => {
+  try {
+    const BlockedIP = require('../models/BlockedIP');
+    const blockedIps = await BlockedIP.find().sort({ blockedAt: -1 });
+    res.json(blockedIps);
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.post('/block-ip', adminAuth, validateInput(require('../utils/validationSchemas').blockIpSchema), async (req, res, next) => {
+  try {
+    const { ip, reason } = req.body;
+    const BlockedIP = require('../models/BlockedIP');
+
+    const existing = await BlockedIP.findOne({ ip });
+    if (existing) {
+      throw new Error('IP is already blocked', 400);
+    }
+
+    await BlockedIP.create({ ip, reason: reason || 'Blocked by administrator' });
+    res.json({ message: `IP ${ip} blocked successfully` });
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.delete('/block-ip/:ip', adminAuth, async (req, res, next) => {
+  try {
+    const { ip } = req.params;
+    const BlockedIP = require('../models/BlockedIP');
+
+    const result = await BlockedIP.findOneAndDelete({ ip });
+    if (!result) {
+      throw new Error('IP block not found', 404);
+    }
+
+    res.json({ message: `IP ${ip} unblocked successfully` });
   } catch (error) {
     next(error);
   }
