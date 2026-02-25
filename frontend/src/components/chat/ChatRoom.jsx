@@ -5,10 +5,16 @@ import { useSnow } from '../../context/SnowContext';
 import MessageList from './MessageList';
 import MessageInput from './MessageInput';
 import UserJoin from '../ui/UserJoin';
-import { Users, Sun, Moon, Settings, X, CloudSnow } from 'lucide-react';
+import { Users, Sun, Moon, Settings, X, CloudSnow, Bell, BellOff } from 'lucide-react';
 
 const ChatRoom = () => {
-  const { user, connected, onlineUsers } = useSocket();
+  const {
+    user,
+    connected,
+    onlineUsers,
+    notificationPermission,
+    requestNotificationPermission
+  } = useSocket();
   const { isDark, toggleTheme } = useTheme();
   const { isSnowing, toggleSnow } = useSnow();
 
@@ -64,6 +70,20 @@ const ChatRoom = () => {
             title={isSnowing ? "Stop Snowing" : "Let it Snow"}
           >
             <CloudSnow className={`h-5 w-5 ${isSnowing ? 'animate-pulse' : ''}`} />
+          </button>
+
+          {/* Notification Toggle */}
+          <button
+            onClick={requestNotificationPermission}
+            className={`p-2 rounded-lg transition-colors ${notificationPermission === 'granted'
+              ? 'text-yellow-500 bg-yellow-50 dark:bg-yellow-900/20'
+              : notificationPermission === 'denied'
+                ? 'text-red-500 bg-red-50 dark:bg-red-900/20'
+                : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
+              }`}
+            title={notificationPermission === 'granted' ? "Notifications Enabled" : "Enable Notifications"}
+          >
+            {notificationPermission === 'granted' ? <Bell className="h-5 w-5" /> : <BellOff className="h-5 w-5" />}
           </button>
 
           <button

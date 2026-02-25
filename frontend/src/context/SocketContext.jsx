@@ -14,6 +14,7 @@ export const SocketProvider = ({ children }) => {
   const [onlineUsers, setOnlineUsers] = useState([]);
   const [typingUsers, setTypingUsers] = useState([]);
   const [user, setUser] = useState(null);
+  const [notificationPermission, setNotificationPermission] = useState(Notification.permission);
 
   // Initialize socket connection once
   useEffect(() => {
@@ -34,6 +35,17 @@ export const SocketProvider = ({ children }) => {
       }
     };
   }, []);
+
+  const requestNotificationPermission = async () => {
+    if (!('Notification' in window)) {
+      console.warn('This browser does not support desktop notification');
+      return;
+    }
+
+    const permission = await Notification.requestPermission();
+    setNotificationPermission(permission);
+    return permission;
+  };
 
   // Set up all event listeners and handle cleanup for them
   useEffect(() => {
@@ -80,6 +92,31 @@ export const SocketProvider = ({ children }) => {
     socket.on('message-received', (message) => {
       console.log('📨 New message:', message);
       setMessages(prev => [...prev, message]);
+
+      // Browser Notification logic
+      if (
+        document.visibilityState === 'hidden' &&
+        notificationPermission === 'granted' &&
+        message.user?._id !== user?._id
+      ) {
+        const title = `New message from ${message.user?.username || 'User'}`;
+        const options = {
+          body: message.content || `Sent a ${message.type || 'message'}`,
+          icon: message.user?.avatar || '/logo192.png',
+          tag: 'chattr-new-message', // Prevent duplicate notifications
+          renotify: true
+        };
+
+        try {
+          const notification = new Notification(title, options);
+          notification.onclick = () => {
+            window.focus();
+            notification.close();
+          };
+        } catch (err) {
+          console.error('Error showing notification:', err);
+        }
+      }
     });
 
     socket.on('recent-messages', (recentMessages) => {
@@ -220,7 +257,9 @@ export const SocketProvider = ({ children }) => {
     sendMessage,
     toggleReaction,
     startTyping,
-    stopTyping
+    stopTyping,
+    notificationPermission,
+    requestNotificationPermission
   };
 
   return (
