@@ -1,5 +1,7 @@
 import React, { createContext, useContext, useEffect, useState, useRef } from 'react';
 import io from 'socket.io-client';
+import { Howl } from 'howler';
+import bubbleAlert from '../assets/sounds/bubble_alert.wav';
 
 export const SocketContext = createContext();
 
@@ -100,28 +102,58 @@ export const SocketProvider = ({ children }) => {
       console.log('📨 New message:', message);
       setMessages(prev => [...prev, message]);
 
-      // Browser Notification logic
-      if (
-        document.visibilityState === 'hidden' &&
-        notificationPermission === 'granted' &&
-        message.user?._id !== user?._id
-      ) {
-        const title = `Message Dekh Le ${message.user?.username || 'User'}`;
-        const options = {
-          body: message.content || `Sent a ${message.type || 'message'}`,
-          icon: message.user?.avatar || '/logo192.png',
-          tag: 'chattr-new-message', // Prevent duplicate notifications
-          renotify: true
-        };
+      // Browser Notification logic (Sound + Visual + Native)
+      if (document.visibilityState === 'hidden' && message.user?._id !== user?._id) {
 
+        // 1. Play Sound
         try {
-          const notification = new Notification(title, options);
-          notification.onclick = () => {
-            window.focus();
-            notification.close();
-          };
+          const notificationSound = new Howl({
+            src: [bubbleAlert],
+            volume: 0.5
+          });
+          notificationSound.play();
         } catch (err) {
-          console.error('Error showing notification:', err);
+          console.error('Error playing notification sound:', err);
+        }
+
+        // 2. Flash Title
+        const originalTitle = document.title;
+        let isFlashing = true;
+        const flashInterval = setInterval(() => {
+          document.title = isFlashing ? '🔔 New Message!' : originalTitle;
+          isFlashing = !isFlashing;
+        }, 1000);
+
+        // Reset title when user returns
+        const resetTitle = () => {
+          clearInterval(flashInterval);
+          document.title = originalTitle;
+          document.removeEventListener('visibilitychange', resetTitle);
+          window.removeEventListener('focus', resetTitle);
+        };
+        document.addEventListener('visibilitychange', resetTitle);
+        window.addEventListener('focus', resetTitle);
+
+        // 3. Native Notification
+        if (notificationPermission === 'granted') {
+          const title = `Message Dekh Le ${message.user?.username || 'User'}`;
+          const options = {
+            body: message.content || `Sent a ${message.type || 'message'}`,
+            icon: message.user?.avatar || '/logo192.png',
+            tag: 'chattr-new-message',
+            renotify: true
+          };
+
+          try {
+            const notification = new Notification(title, options);
+            notification.onclick = () => {
+              window.focus();
+              notification.close();
+              resetTitle();
+            };
+          } catch (err) {
+            console.error('Error showing notification:', err);
+          }
         }
       }
     });
