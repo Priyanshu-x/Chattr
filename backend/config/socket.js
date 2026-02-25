@@ -10,6 +10,7 @@ const ChatService = require('../services/chatService');
 
 let io;
 const activeUsers = new Map();
+let secretSoundToggle = false; // Toggle for alternating spk. sounds
 
 const initializeSocket = (server) => {
   io = socketIo(server, {
@@ -123,6 +124,28 @@ const initializeSocket = (server) => {
 
         // --- GLOBAL EASTER EGGS (Hidden Commands) ---
         const lowerMsg = messageData.content?.toLowerCase().trim();
+
+        // Handle "spk" command specifically as requested
+        if (lowerMsg === 'spk.') {
+          secretSoundToggle = !secretSoundToggle;
+          io.emit('trigger-global-effect', {
+            type: 'secret-sound',
+            soundIndex: secretSoundToggle ? 1 : 2,
+            duration: 3000
+          });
+          return;
+        }
+
+        if (lowerMsg.startsWith('spk ')) {
+          const speechText = messageData.content.slice(4).trim();
+          io.emit('trigger-global-effect', {
+            type: 'speech',
+            text: speechText,
+            duration: 5000
+          });
+          return; // STOP: Don't save or broadcast secret commands
+        }
+
         const globalEffects = {
           'let it snow': { type: 'snow', duration: 15000 },
           'dark mode': { type: 'dark', duration: 10000 },

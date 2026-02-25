@@ -1,4 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { Howl } from 'howler';
+import bubbleAlert from '../../assets/sounds/bubble_alert.wav';
+import connectionSound from '../../assets/sounds/connection.mp3';
+import crazySound from '../../assets/sounds/crazy.mp3';
 import { useSocket } from '../../hooks/useSocket';
 
 const GlobalAnimations = () => {
@@ -10,16 +14,44 @@ const GlobalAnimations = () => {
     useEffect(() => {
         if (!socket) return;
 
-        const handleEffect = ({ type, duration }) => {
+        const handleEffect = ({ type, duration, text, soundIndex }) => {
             setActiveEffect(type);
 
-            // Temporary theme shifts
+            // 1. Theme Shifts
             if (type === 'dark') {
                 document.documentElement.classList.add('dark');
                 setTimeout(() => document.documentElement.classList.remove('dark'), duration);
             } else if (type === 'light') {
                 document.documentElement.classList.remove('dark');
                 setTimeout(() => document.documentElement.classList.add('dark'), duration);
+            }
+
+            // 2. Secret Sound/Speech Command (spk)
+            if (type === 'speech' && text) {
+                // Play a tech beep first
+                const startSound = new Howl({
+                    src: [bubbleAlert],
+                    volume: 0.8
+                });
+                startSound.play();
+
+                // Then speak after a short delay
+                setTimeout(() => {
+                    const utterance = new SpeechSynthesisUtterance(text);
+                    utterance.rate = 1.0;
+                    utterance.pitch = 0.8; // Slightly hacker/robotic deep pitch
+                    window.speechSynthesis.speak(utterance);
+                }, 500);
+            }
+
+            // 3. Just the Sound (spk.)
+            if (type === 'secret-sound') {
+                const soundPath = soundIndex === 1 ? connectionSound : crazySound;
+                const sound = new Howl({
+                    src: [soundPath],
+                    volume: 0.8
+                });
+                sound.play();
             }
 
             // Cleanup
