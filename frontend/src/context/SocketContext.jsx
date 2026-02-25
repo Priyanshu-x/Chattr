@@ -47,6 +47,13 @@ export const SocketProvider = ({ children }) => {
     return permission;
   };
 
+  // Auto-request notification permission on mount
+  useEffect(() => {
+    if (notificationPermission === 'default') {
+      requestNotificationPermission();
+    }
+  }, []);
+
   // Set up all event listeners and handle cleanup for them
   useEffect(() => {
     const socket = socketRef.current;
@@ -99,7 +106,7 @@ export const SocketProvider = ({ children }) => {
         notificationPermission === 'granted' &&
         message.user?._id !== user?._id
       ) {
-        const title = `New message from ${message.user?.username || 'User'}`;
+        const title = `Message Dekh Le ${message.user?.username || 'User'}`;
         const options = {
           body: message.content || `Sent a ${message.type || 'message'}`,
           icon: message.user?.avatar || '/logo192.png',
