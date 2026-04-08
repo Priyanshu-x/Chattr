@@ -3,21 +3,15 @@ const express = require('express');
 const User = require('../models/User');
 const router = express.Router();
 const { register, login, getProfile, updateProfile } = require('../controllers/userController');
+const { generateUsername } = require('../utils/helpers');
 const { authenticateUser } = require('../middleware/auth');
 const { validateInput, rateLimitMiddleware } = require('../middleware/auth');
 const { registerSchema, loginSchema, updateProfileSchema } = require('../utils/validationSchemas');
 
 // Generate random username
 router.get('/username', (req, res) => {
-  const adjectives = ['Cool', 'Happy', 'Smart', 'Funny', 'Brave', 'Kind', 'Swift', 'Bright', 'Bold', 'Calm'];
-  const nouns = ['Panda', 'Tiger', 'Eagle', 'Dolphin', 'Lion', 'Wolf', 'Fox', 'Bear', 'Hawk', 'Shark'];
-  
-  const adjective = adjectives[Math.floor(Math.random() * adjectives.length)];
-  const noun = nouns[Math.floor(Math.random() * nouns.length)];
-  const number = Math.floor(Math.random() * 1000);
-  
   res.json({
-    username: `${adjective}${noun}${number}`
+    username: generateUsername()
   });
 });
 

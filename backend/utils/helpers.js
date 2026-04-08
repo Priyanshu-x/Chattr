@@ -1,11 +1,16 @@
 // Generate a random username
 function generateUsername() {
-	const adjectives = ['Cool', 'Fast', 'Smart', 'Brave', 'Happy', 'Silent', 'Wild', 'Lucky'];
-	const animals = ['Tiger', 'Eagle', 'Shark', 'Wolf', 'Lion', 'Fox', 'Bear', 'Hawk'];
-	const adj = adjectives[Math.floor(Math.random() * adjectives.length)];
-	const animal = animals[Math.floor(Math.random() * animals.length)];
+	const characters = [
+		'Levi', 'Goku', 'Lelouch', 'Itachi', 'Naruto', 'Saitama', 'Deadpool', 'Wolverine',
+		'Eren', 'Zoro', 'Lightning', 'Cloud', 'Aerith', 'Jinx', 'Vi', 'Geralt', 'Ciri',
+		'Dante', 'Vergil', 'Tanjiro', 'Nezuko', 'Zenitsu', 'Gojo', 'Sukuna', 'Megumi',
+		'Luffy', 'Sanji', 'Ichigo', 'Rukia', 'Batman', 'Joker', 'Neo', 'Trinity',
+		'Morpheus', 'Vader', 'Kylo', 'Rey', 'Spider', 'Miles', 'Kirito', 'Asuna',
+		'Rem', 'Subaru', 'Aqua', 'Megumin', 'Kazuma', 'Albedo', 'Rimuru', 'Shion'
+	];
+	const character = characters[Math.floor(Math.random() * characters.length)];
 	const number = Math.floor(Math.random() * 1000);
-	return `${adj}${animal}${number}`;
+	return `${character}${number}`;
 }
 
 // Generate a random avatar URL (placeholder logic)
