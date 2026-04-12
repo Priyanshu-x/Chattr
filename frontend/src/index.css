@@ -9,6 +9,15 @@
   
   body {
     font-family: 'Inter', system-ui, sans-serif;
+    background-image: url('./assets/light-bg.webp');
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
+    background-repeat: no-repeat;
+  }
+
+  html.dark body {
+    background-image: url('./assets/black-bg.webp');
   }
 }
 
@@ -23,11 +32,11 @@ img {
   }
   
   .chat-bubble-user {
-    @apply bg-black dark:bg-white text-white dark:text-black rounded-2xl rounded-br-md px-4 py-2 shadow-lg;
+    @apply bg-black/80 dark:bg-white/80 backdrop-blur-md text-white dark:text-black rounded-2xl rounded-br-md px-4 py-2 shadow-lg;
   }
   
   .chat-bubble-other {
-    @apply bg-white dark:bg-gray-800 text-gray-900 dark:text-white rounded-2xl rounded-bl-md px-4 py-2 shadow-lg border border-gray-200 dark:border-gray-700;
+    @apply bg-white/70 dark:bg-gray-800/80 backdrop-blur-md text-gray-900 dark:text-white rounded-2xl rounded-bl-md px-4 py-2 shadow-lg border border-gray-200 dark:border-gray-700;
   }
   
   .message-time {

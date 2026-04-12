@@ -41,14 +41,14 @@ const ChatRoom = () => {
   }
 
   return (
-    <div className="flex flex-col h-dvh bg-gray-50 dark:bg-gray-900">
+    <div className="flex flex-col h-dvh">
       {/* User Join Modal */}
       {showUserJoin && (
         <UserJoin onClose={() => setShowUserJoin(false)} />
       )}
 
       {/* Header */}
-      <header className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-4 py-3 flex items-center justify-between z-10 relative">
+      <header className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-md border-b border-gray-200 dark:border-gray-700 px-4 py-3 flex items-center justify-between z-10 relative">
         <div className="flex items-center space-x-4">
           <h1 className="text-xl font-bold text-gray-900 dark:text-white">
             Chattr
@@ -111,7 +111,7 @@ const ChatRoom = () => {
 
       {/* Online Users Sidebar */}
       {showSidebar && (
-        <div className={`fixed inset-y-0 right-0 w-64 sm:w-80 bg-white dark:bg-gray-800 border-l border-gray-200 dark:border-gray-700 shadow-lg z-50 flex flex-col transform ${showSidebar ? 'translate-x-0' : 'translate-x-full'} transition-transform duration-300 ease-in-out`}>
+        <div className={`fixed inset-y-0 right-0 w-64 sm:w-80 bg-white/90 dark:bg-gray-800/90 backdrop-blur-lg border-l border-gray-200 dark:border-gray-700 shadow-lg z-50 flex flex-col transform ${showSidebar ? 'translate-x-0' : 'translate-x-full'} transition-transform duration-300 ease-in-out`}>
           <div className="p-4 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
             <h3 className="font-semibold text-gray-900 dark:text-white">Online Users ({onlineUsers.length})</h3>
             <button

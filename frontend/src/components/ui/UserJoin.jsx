@@ -72,7 +72,7 @@ const UserJoin = ({ onClose }) => {
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl max-w-md w-full p-6">
+      <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-md rounded-xl shadow-2xl max-w-md w-full p-6">
         {/* Header */}
         <div className="text-center mb-6">
           <div className="w-16 h-16 bg-gray-100 dark:bg-gray-700/50 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -125,7 +125,7 @@ const UserJoin = ({ onClose }) => {
               onChange={(e) => setUsername(e.target.value)}
               onKeyPress={handleKeyPress}
               placeholder="Enter your username"
-              className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-colors"
+              className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 bg-white/50 dark:bg-gray-700/50 backdrop-blur-sm text-gray-900 dark:text-white rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-colors"
               maxLength={20}
             />
             <button
@@ -152,7 +152,7 @@ const UserJoin = ({ onClose }) => {
         </button>
 
         {/* Info */}
-        <div className="mt-4 p-3 bg-gray-100 dark:bg-gray-700/30 rounded-lg">
+        <div className="mt-4 p-3 bg-gray-100/50 dark:bg-gray-700/30 backdrop-blur-sm rounded-lg">
           <p className="text-sm text-gray-600 dark:text-gray-300">
             💡 Your messages will automatically delete after 24 hours. Stay respectful and have fun!
           </p>

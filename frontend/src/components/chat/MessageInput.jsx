@@ -186,7 +186,7 @@ const MessageInput = ({ replyingTo, setReplyingTo }) => {
     <div className="relative">
       {/* Sticker Picker */}
       {showStickers && (
-        <div className="absolute bottom-full mb-2 left-4 right-4 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 p-4">
+        <div className="absolute bottom-full mb-2 left-4 right-4 bg-white/90 dark:bg-gray-800/90 backdrop-blur-md rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 p-4">
           <h3 className="font-semibold text-gray-900 dark:text-white mb-3">Stickers</h3>
           <div className="grid grid-cols-8 gap-2">
             {emojis.map((emoji, index) => (
@@ -198,7 +198,7 @@ const MessageInput = ({ replyingTo, setReplyingTo }) => {
 
       {/* File Preview */}
       {(filePreview || selectedFile) && (
-        <div className="px-4 py-2 bg-gray-100 dark:bg-gray-700 border-b border-gray-200 dark:border-gray-600">
+        <div className="px-4 py-2 bg-white/60 dark:bg-gray-800/60 backdrop-blur-sm border-b border-gray-200 dark:border-gray-600">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
               {filePreview ? (
@@ -225,7 +225,7 @@ const MessageInput = ({ replyingTo, setReplyingTo }) => {
 
       {/* Reply Preview */}
       {replyingTo && (
-        <div className="px-4 py-2 bg-gray-100 dark:bg-gray-700 border-b border-gray-200 dark:border-gray-600">
+        <div className="px-4 py-2 bg-white/60 dark:bg-gray-800/60 backdrop-blur-sm border-b border-gray-200 dark:border-gray-600">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3 overflow-hidden">
               <Reply className="h-5 w-5 text-gray-500" />
@@ -282,7 +282,7 @@ const MessageInput = ({ replyingTo, setReplyingTo }) => {
             onKeyPress={handleKeyPress}
             placeholder={isRecording ? "Recording..." : "Type a message..."}
             disabled={isRecording || isUploading}
-            className="w-full resize-none bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 border border-gray-300 dark:border-gray-600 rounded-2xl px-3 py-2 sm:px-4 sm:py-3 pr-10 sm:pr-12 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-colors"
+            className="w-full resize-none bg-white/50 dark:bg-gray-800/50 backdrop-blur-md text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 border border-gray-300/50 dark:border-gray-600/50 rounded-2xl px-3 py-2 sm:px-4 sm:py-3 pr-10 sm:pr-12 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-colors shadow-sm"
             rows={1}
           />
           {isRecording && (
