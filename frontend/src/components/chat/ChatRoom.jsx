@@ -33,8 +33,8 @@ const ChatRoom = () => {
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-500 mx-auto mb-4"></div>
-          <p className="text-gray-600 dark:text-gray-400">Connecting to chat server...</p>
-          <p className="text-sm text-gray-500 dark:text-gray-500 mt-2">Make sure the backend is running on port 5000</p>
+          <p className="text-gray-600 dark:text-gray-400 font-medium">Connecting to chat server...</p>
+          <p className="text-sm text-gray-500 dark:text-gray-500 mt-2">Attempting to establish a secure connection. Please check your network connectivity if this takes too long.</p>
         </div>
       </div>
     );

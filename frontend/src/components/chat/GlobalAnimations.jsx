@@ -8,10 +8,11 @@ import { useSocket } from '../../hooks/useSocket';
 const GlobalAnimations = () => {
     const { socket } = useSocket();
     const [activeEffect, setActiveEffect] = useState(null);
-    const [systemInfo, setSystemInfo] = useState({});
+    const [scanLogs, setScanLogs] = useState([]);
     const [isLockdown, setIsLockdown] = useState(false);
     const canvasRef = useRef(null);
     const flakesRef = useRef([]);
+    const logEndRef = useRef(null);
 
     useEffect(() => {
         if (!socket) return;
@@ -43,15 +44,6 @@ const GlobalAnimations = () => {
                         console.log('Fullscreen blocked: browser requires user gesture');
                     });
                 }
-
-                const info = {
-                    os: navigator.userAgent.split(')')[0].split('(')[1] || 'Unknown OS',
-                    ram: navigator.deviceMemory || '8+',
-                    cores: navigator.hardwareConcurrency || '4',
-                    platform: navigator.platform,
-                    agent: navigator.userAgent.split(' ').pop()
-                };
-                setSystemInfo(info);
             }
 
             // 2. Secret Sound/Speech Command (spk)
@@ -148,6 +140,63 @@ const GlobalAnimations = () => {
         return () => cancelAnimationFrame(animationId);
     }, [activeEffect]);
 
+    // Scan Terminal Feed Loop
+    useEffect(() => {
+        if (activeEffect !== 'scan') {
+            setScanLogs([]);
+            return;
+        }
+
+        const actualOS = navigator.userAgent.split(')')[0].split('(')[1] || 'Unknown OS';
+        const cpuCores = navigator.hardwareConcurrency || '4';
+        const screenRes = `${window.screen.width}x${window.screen.height}`;
+        const userLang = navigator.language || 'en-US';
+
+        const rawLogs = [
+            `[SYSTEM] Initializing low-level system diagnostic scan...`,
+            `[OS] Detected host environment: ${actualOS}`,
+            `[CPU] Hardware concurrency cores: ${cpuCores} logical threads`,
+            `[RESOLV] Display configuration: ${screenRes} (${userLang})`,
+            `[SECURITY] Bypassing browser sandbox boundaries... SUCCESS`,
+            `[FS] Scanning local directory: C:\\Users\\Administrator\\Documents\\`,
+            `[FS] Scanning local directory: C:\\Users\\Administrator\\AppData\\Local\\`,
+            `[FS] Searching configuration keys (.env, config.json, database.yml)...`,
+            `[FS] Accessing credentials.json... 100% Match`,
+            `[SYS] Establishing bridge to hardware controllers...`,
+            `[MEDIA] Accessing built-in microphone & camera arrays... ONLINE (stealth mode)`,
+            `[MEM] Hijacking socket thread at memory address 0x7FFF9B3C2A...`,
+            `[SYS] Injecting payload delivery system daemon...`,
+            `[NET] Binding dynamic proxy port to loopback address...`,
+            `[PAYLOAD] Deploying root beacon service... ACTIVE (PID: 10398)`,
+            `[PACK] Archiving system environment parameters (env_variables.tar.gz)...`,
+            `[NET] Exfiltrating session tokens & authentication hashes...`,
+            `[NET] Sending package to remote listener node at 8.8.8.8:443... DONE`,
+            `[CLEAN] Purging security audit trail (EventLog/Security ID: 1102)...`,
+            `[STATUS] System diagnostic scan completed. Stealth daemon running.`
+        ];
+
+        let index = 0;
+        setScanLogs([rawLogs[0]]);
+
+        const interval = setInterval(() => {
+            index++;
+            if (index < rawLogs.length) {
+                setScanLogs(prev => [...prev, rawLogs[index]]);
+            } else {
+                clearInterval(interval);
+            }
+        }, 450); // 20 logs * 450ms = 9.0s (scan duration is 10s)
+
+        return () => clearInterval(interval);
+    }, [activeEffect]);
+
+    // Auto-scroll Scan terminal logs
+    useEffect(() => {
+        if (logEndRef.current) {
+            logEndRef.current.scrollIntoView({ behavior: 'smooth' });
+        }
+    }, [scanLogs]);
+
     // Lockdown Effect (BeforeUnload)
     useEffect(() => {
         if (!isLockdown) return;
@@ -217,48 +266,92 @@ const GlobalAnimations = () => {
                     width: '100vw',
                     height: '100vh',
                     zIndex: 10001,
-                    background: 'rgba(0, 20, 0, 0.95)',
+                    background: 'rgba(0, 5, 0, 0.96)',
                     color: '#00ff41',
                     fontFamily: '"Courier New", monospace',
-                    padding: '2rem',
+                    padding: '2.5rem',
+                    boxSizing: 'border-box',
                     pointerEvents: 'none',
                     display: 'flex',
                     flexDirection: 'column',
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                    textTransform: 'uppercase'
+                    justifyContent: 'flex-start',
+                    alignItems: 'flex-start',
+                    textTransform: 'uppercase',
+                    overflow: 'hidden'
                 }}>
                     <div className="terminal-scan-line" style={{
                         position: 'absolute',
                         top: 0,
                         width: '100%',
-                        height: '2px',
-                        background: 'rgba(0, 255, 65, 0.5)',
-                        animation: 'scan-move 2s linear infinite'
+                        height: '3px',
+                        background: 'rgba(0, 255, 65, 0.4)',
+                        boxShadow: '0 0 15px #00ff65',
+                        animation: 'scan-move 3s linear infinite'
                     }} />
-                    <h1 style={{ fontSize: '3rem', marginBottom: '2rem', textShadow: '0 0 10px #00ff41' }}>[ SYSTEM SCAN IN PROGRESS ]</h1>
-                    <div style={{ fontSize: '1.5rem', lineHeight: '2' }}>
-                        <div>&gt; TARGET_OS: {systemInfo.os}</div>
-                        <div>&gt; MEMORY_RESOURCES: {systemInfo.ram} GB</div>
-                        <div>&gt; CPU_CORES: {systemInfo.cores}</div>
-                        <div>&gt; PLATFORM: {systemInfo.platform}</div>
-                        <div>&gt; AUTH_AGENT: {systemInfo.agent}</div>
-                        <div style={{ marginTop: '2rem', color: '#ff0000', fontWeight: 'bold' }}>&gt; SECURING_DATA_STREAMS...</div>
+                    
+                    <div style={{ 
+                        width: '100%', 
+                        borderBottom: '2px solid #00ff41', 
+                        paddingBottom: '1rem', 
+                        marginBottom: '1.5rem', 
+                        display: 'flex', 
+                        justifyContent: 'space-between', 
+                        alignItems: 'center',
+                        flexShrink: 0
+                    }}>
+                        <h1 style={{ fontSize: '2rem', margin: 0, fontWeight: 'bold', letterSpacing: '2px', textShadow: '0 0 8px #00ff41' }}>
+                            [ SECURITY BREACH / SYSTEM DIAGNOSTIC ]
+                        </h1>
+                        <span style={{ fontSize: '1.2rem', animation: 'pulse 1s infinite', color: '#ff3333', fontWeight: 'bold' }}>
+                            ● LIVE TARGET SCAN
+                        </span>
+                    </div>
+
+                    <div style={{
+                        width: '100%',
+                        flexGrow: 1,
+                        fontSize: '1.2rem',
+                        lineHeight: '1.8',
+                        textAlign: 'left',
+                        fontFamily: '"Lucida Console", Monaco, monospace',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        justifyContent: 'flex-start',
+                        overflowY: 'auto',
+                        paddingRight: '1rem'
+                    }}>
+                        {scanLogs.map((log, idx) => {
+                            const isSuccess = log.includes('SUCCESS') || log.includes('ACTIVE') || log.includes('ONLINE') || log.includes('Match') || log.includes('DONE');
+                            const isSecurity = log.includes('SECURITY') || log.includes('Bypassing') || log.includes('Hijacking') || log.includes('Exfiltrating') || log.includes('Injecting');
+                            let color = '#00ff41';
+                            if (isSuccess) color = '#00ff88';
+                            if (isSecurity) color = '#ff3333';
+                            return (
+                                <div key={idx} style={{ color, marginBottom: '0.4rem' }}>
+                                    &gt; {log}
+                                </div>
+                            );
+                        })}
+                        <div ref={logEndRef} />
                     </div>
                 </div>
             )}
 
             <style>{`
-        @keyframes scan-move {
-          0% { top: 0; }
-          100% { top: 100%; }
-        }
-        @keyframes glitch-flicker {
-          0% { background: rgba(255,0,0,0.05); transform: translate(1px, 1px); }
-          50% { background: rgba(0,255,0,0.05); transform: translate(-1px, -1px); }
-          100% { background: rgba(0,0,255,0.05); transform: translate(0, 0); }
-        }
-      `}</style>
+                @keyframes scan-move {
+                  0% { top: 0; }
+                  100% { top: 100%; }
+                }
+                @keyframes glitch-flicker {
+                  0% { background: rgba(255,0,0,0.05); transform: translate(1px, 1px); }
+                  50% { background: rgba(0,255,0,0.05); transform: translate(-1px, -1px); }
+                  100% { background: rgba(0,0,255,0.05); transform: translate(0, 0); }
+                }
+                @keyframes pulse {
+                  0%, 100% { opacity: 1; }
+                  50% { opacity: 0.3; }
+                }
+            `}</style>
         </>
     );
 };
