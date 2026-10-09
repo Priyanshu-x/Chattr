@@ -339,8 +339,17 @@ const MessageManagement = () => {
 
       <div className="space-y-4 max-h-[600px] overflow-y-auto custom-scrollbar pr-2">
         {filteredMessages.map((message) => {
-          if (!message.user) return null;
+          if (!message.user && message.type !== 'announcement') return null;
           const isSelected = selectedIds.includes(message._id);
+          
+          const avatarUrl = message.type === 'announcement' 
+            ? 'https://cdn-icons-png.flaticon.com/512/4712/4712139.png' 
+            : message.user.avatar;
+          
+          const username = message.type === 'announcement'
+            ? 'System Announcement'
+            : message.user.username;
+
           return (
             <div
               key={message._id}
@@ -363,13 +372,13 @@ const MessageManagement = () => {
                   <div className="flex items-center justify-between mb-2">
                     <div className="flex items-center space-x-3 truncate">
                       <img
-                        src={DOMPurify.sanitize(message.user.avatar)}
-                        alt={DOMPurify.sanitize(message.user.username)}
+                        src={DOMPurify.sanitize(avatarUrl)}
+                        alt={DOMPurify.sanitize(username)}
                         className="w-8 h-8 rounded-full flex-shrink-0"
                       />
                       <div className="truncate">
                         <p className="font-medium text-gray-900 dark:text-white truncate">
-                          {DOMPurify.sanitize(message.user.username)}
+                          {DOMPurify.sanitize(username)}
                         </p>
                         <p className="text-xs text-gray-500 dark:text-gray-400">
                           {new Date(message.createdAt).toLocaleString()}
