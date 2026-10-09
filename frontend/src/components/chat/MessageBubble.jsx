@@ -129,7 +129,7 @@ const MessageBubble = ({ message, isOwnMessage, showAvatar, onReply }) => {
   }
 
   return (
-    <div className={`flex items-end space-x-2 group ${isOwnMessage ? 'flex-row-reverse space-x-reverse' : ''}`}>
+    <div className={`flex items-end space-x-2 group ${isOwnMessage ? 'flex-row-reverse space-x-reverse' : ''} ${showMenu || showReactions ? 'relative z-50' : 'relative z-0 hover:z-40'}`}>
       {/* Avatar */}
       {showAvatar && !isOwnMessage && (
         <img
@@ -162,7 +162,7 @@ const MessageBubble = ({ message, isOwnMessage, showAvatar, onReply }) => {
         )}
 
         {/* Message bubble */}
-        <div className={`relative ${showMenu || showReactions ? 'z-50' : 'z-10 hover:z-40'}`}>
+        <div className="relative">
           <div
             className={`
               ${isOwnMessage
