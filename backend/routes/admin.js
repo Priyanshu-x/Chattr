@@ -169,13 +169,23 @@ router.post('/announcement', adminAuth, validateInput(announcementSchema), async
   try {
     const { content, type } = req.body;
 
+    // Save announcement to DB to make it persistent
+    const Message = require('../models/Message');
+    const newAnnouncement = new Message({
+      type: 'announcement',
+      content,
+      announcementType: type || 'info'
+    });
+    await newAnnouncement.save();
+
     // Emit announcement to all clients
     const { getIO } = require('../config/socket');
     const io = getIO();
     io.emit('admin-announcement', {
-      content,
-      type,
-      timestamp: new Date()
+      _id: newAnnouncement._id,
+      content: newAnnouncement.content,
+      type: newAnnouncement.announcementType,
+      timestamp: newAnnouncement.createdAt
     });
 
     res.json({ message: 'Announcement sent successfully' });

@@ -32,9 +32,17 @@ const MessageList = ({ onReply }) => {
       ) : (
         <>
           {messages.map((message, index) => {
-            if (!message.user) return null; // Skip messages with missing user
-            const isOwnMessage = user && message.user._id === user.id;
-            const showAvatar = index === 0 || (messages[index - 1].user && messages[index - 1].user._id !== message.user._id);
+            if (!message.user && message.type !== 'announcement') return null; // Skip messages with missing user except announcements
+            
+            const isOwnMessage = user && message.user && message.user._id === user.id;
+            const prevMessage = index > 0 ? messages[index - 1] : null;
+            const showAvatar = message.type !== 'announcement' && (
+              index === 0 || 
+              !prevMessage || 
+              prevMessage.type === 'announcement' || 
+              (prevMessage.user && prevMessage.user._id !== message.user._id)
+            );
+
             return (
               <MessageBubble
                 key={message._id}
