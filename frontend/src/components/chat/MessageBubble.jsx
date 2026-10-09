@@ -162,7 +162,7 @@ const MessageBubble = ({ message, isOwnMessage, showAvatar, onReply }) => {
         )}
 
         {/* Message bubble */}
-        <div className="relative">
+        <div className={`relative ${showMenu || showReactions ? 'z-50' : 'z-10 hover:z-40'}`}>
           <div
             className={`
               ${isOwnMessage
@@ -201,7 +201,7 @@ const MessageBubble = ({ message, isOwnMessage, showAvatar, onReply }) => {
             </button>
 
             {showMenu && (
-              <div className="absolute top-6 right-0 bg-white dark:bg-gray-700 rounded-lg shadow-lg border border-gray-200 dark:border-gray-600 py-1 z-10">
+              <div className="absolute top-6 right-0 bg-white dark:bg-gray-700 rounded-lg shadow-lg border border-gray-200 dark:border-gray-600 py-1 z-50">
                 <button
                   onClick={() => {
                     onReply(message);
@@ -235,7 +235,7 @@ const MessageBubble = ({ message, isOwnMessage, showAvatar, onReply }) => {
 
           {/* Quick reaction picker */}
           {showReactions && (
-            <div className="absolute top-full mt-1 bg-white dark:bg-gray-700 rounded-full shadow-lg border border-gray-200 dark:border-gray-600 px-2 py-1 flex space-x-1 z-10">
+            <div className="absolute top-full mt-1 bg-white dark:bg-gray-700 rounded-full shadow-lg border border-gray-200 dark:border-gray-600 px-2 py-1 flex space-x-1 z-50">
               {['👍', '❤️', '😂', '😮', '😢', '😡'].map((emoji) => (
                 <button
                   key={emoji}
