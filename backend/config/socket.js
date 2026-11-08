@@ -102,18 +102,23 @@ const initializeSocket = (server) => {
           ? 'Failed to join chat.'
           : error.message || 'Failed to join chat';
         socket.emit('error', { message: errorMessage });
-        socket.disconnect(true); // Force disconnect on critical errors
       }
     });
 
     // Handle new message
     socket.on('new-message', async (messageData) => {
       try {
-        const user = activeUsers.get(socket.id);
+        let user = activeUsers.get(socket.id);
         if (!user) {
-          socket.emit('error', { message: 'User session expired or not found. Please rejoin.' });
-          socket.disconnect(true); // Force disconnect
-          return; // Exit early if user not found
+          // Gracefully recover user from database if socket reconnected
+          user = await User.findOne({ socketId: socket.id });
+          if (user) {
+            activeUsers.set(socket.id, user);
+          } else {
+            logger.warn(`User session missing for socket ${socket.id}. Requesting rejoin.`);
+            socket.emit('session-expired', { message: 'User session expired or not found. Please rejoin.' });
+            return;
+          }
         }
 
         // Rate limiting check using Service (In-Memory)
@@ -202,19 +207,23 @@ const initializeSocket = (server) => {
         // --- REACTION WARS (Randomly react to messages) ---
         if (process.env.KIRA_ENABLED === 'true' && Math.random() < 0.15) { // 15% chance to react
           setTimeout(async () => {
-            const kiraUser = await ChatService.getKiraUser();
-            const botEmojis = ['💅', '🙄', '🔥', '💻', '🌌', '🧠', '⚡', '🤖', '💀', '🤡'];
-            const randomEmoji = botEmojis[Math.floor(Math.random() * botEmojis.length)];
+            try {
+              const kiraUser = await ChatService.getKiraUser();
+              const botEmojis = ['💅', '🙄', '🔥', '💻', '🌌', '🧠', '⚡', '🤖', '💀', '🤡'];
+              const randomEmoji = botEmojis[Math.floor(Math.random() * botEmojis.length)];
 
-            message.reactions.push({
-              emoji: randomEmoji,
-              user: kiraUser._id
-            });
-            await message.save();
-            io.emit('reaction-updated', {
-              messageId: message._id,
-              reactions: message.reactions
-            });
+              message.reactions.push({
+                emoji: randomEmoji,
+                user: kiraUser._id
+              });
+              await message.save();
+              io.emit('reaction-updated', {
+                messageId: message._id,
+                reactions: message.reactions
+              });
+            } catch (reactionErr) {
+              logger.error('Reaction Wars Error:', reactionErr);
+            }
           }, 2000);
         }
 
@@ -257,7 +266,7 @@ const initializeSocket = (server) => {
                   .limit(20)
                   .populate('user', 'username');
 
-                const summaryPrompt = `Recap these messages from the last 24 hours in your sarcastic tech-nerdy style. Be brief and judge the quality of discussion: ${dayMessages.map(m => `${m.user.username}: ${m.content}`).join(' | ')}`;
+                const summaryPrompt = `Recap these messages from the last 24 hours in your sarcastic tech-nerdy style. Be brief and judge the quality of discussion: ${dayMessages.map(m => `${m.user?.username || 'Announcement'}: ${m.content}`).join(' | ')}`;
                 aiResponse = await AIService.generateResponse(summaryPrompt, []);
               } else {
                 // Get recent context
@@ -267,8 +276,8 @@ const initializeSocket = (server) => {
                   .populate('user', 'username');
 
                 const context = recentMessages.reverse().map(m => ({
-                  role: m.user.username === 'Kira' ? 'Kira' : 'User',
-                  username: m.user.username,
+                  role: m.user?.username === 'Kira' ? 'Kira' : 'User',
+                  username: m.user?.username || 'System',
                   content: m.content
                 }));
 
@@ -288,22 +297,26 @@ const initializeSocket = (server) => {
 
               // Small delay to feel more human
               setTimeout(async () => {
-                const kiraMessage = await ChatService.createMessage({
-                  content: aiResponse,
-                  user: kiraUser._id,
-                  type: 'text'
-                });
+                try {
+                  const kiraMessage = await ChatService.createMessage({
+                    content: aiResponse,
+                    user: kiraUser._id,
+                    type: 'text'
+                  });
 
-                await kiraMessage.populate('user', 'username avatar');
+                  await kiraMessage.populate('user', 'username avatar');
 
-                io.emit('message-received', {
-                  _id: kiraMessage._id,
-                  content: kiraMessage.content,
-                  type: kiraMessage.type,
-                  user: kiraMessage.user,
-                  createdAt: kiraMessage.createdAt,
-                  reactions: kiraMessage.reactions
-                });
+                  io.emit('message-received', {
+                    _id: kiraMessage._id,
+                    content: kiraMessage.content,
+                    type: kiraMessage.type,
+                    user: kiraMessage.user,
+                    createdAt: kiraMessage.createdAt,
+                    reactions: kiraMessage.reactions
+                  });
+                } catch (sendErr) {
+                  logger.error('Error sending Kira response message:', sendErr);
+                }
               }, 3000);
 
             } catch (aiErr) {

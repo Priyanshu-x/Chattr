@@ -15,7 +15,27 @@ export const SocketProvider = ({ children }) => {
   const [messages, setMessages] = useState([]);
   const [onlineUsers, setOnlineUsers] = useState([]);
   const [typingUsers, setTypingUsers] = useState([]);
-  const [user, setUser] = useState(null);
+  const [user, setUser] = useState(() => {
+    try {
+      const saved = localStorage.getItem('chattr_user');
+      return saved ? JSON.parse(saved) : null;
+    } catch {
+      return null;
+    }
+  });
+  const userRef = useRef(user);
+
+  useEffect(() => {
+    userRef.current = user;
+    if (user) {
+      try {
+        localStorage.setItem('chattr_user', JSON.stringify(user));
+      } catch (e) {
+        console.error('Failed to save user to localStorage:', e);
+      }
+    }
+  }, [user]);
+
   const [notificationPermission, setNotificationPermission] = useState(Notification.permission);
 
   // Initialize socket connection once
@@ -25,7 +45,7 @@ export const SocketProvider = ({ children }) => {
     socketRef.current = io(backendUrl, {
       transports: ['websocket', 'polling'],
       withCredentials: true,
-      reconnectionAttempts: 5,
+      reconnectionAttempts: 10,
       reconnectionDelay: 1000,
     });
 
@@ -66,6 +86,15 @@ export const SocketProvider = ({ children }) => {
     socket.on('connect', () => {
       console.log('SocketContext: ✅ Connected to server');
       setConnected(true);
+
+      // Automatically re-join if user session exists (survives transport upgrade/reconnect)
+      if (userRef.current?.username && userRef.current?.avatar) {
+        console.log('SocketContext: Restoring session on connect for:', userRef.current.username);
+        socket.emit('join-chat', {
+          username: userRef.current.username,
+          avatar: userRef.current.avatar
+        });
+      }
     });
 
     socket.on('connecting', () => {
@@ -91,6 +120,20 @@ export const SocketProvider = ({ children }) => {
     socket.on('disconnect', () => {
       console.log('❌ Disconnected from server');
       setConnected(false);
+    });
+
+    socket.on('session-expired', () => {
+      console.warn('SocketContext: Session expired, auto-rejoining...');
+      if (userRef.current?.username && userRef.current?.avatar) {
+        socket.emit('join-chat', {
+          username: userRef.current.username,
+          avatar: userRef.current.avatar
+        });
+      }
+    });
+
+    socket.on('error', (err) => {
+      console.warn('SocketContext error notification:', err);
     });
 
     socket.on('user-info', (userInfo) => {
@@ -250,12 +293,20 @@ export const SocketProvider = ({ children }) => {
       socket.off('admin-announcement');
       socket.off('user-typing');
       socket.off('user-stop-typing');
+      socket.off('session-expired');
+      socket.off('error');
     };
   }, []); // Empty dependency array means this effect runs once on mount and cleans up on unmount
 
   const joinChat = (userData) => {
     console.log('🚀 Joining chat with:', userData);
-    if (socketRef.current && connected) {
+    userRef.current = userData;
+    try {
+      localStorage.setItem('chattr_user', JSON.stringify(userData));
+    } catch (e) {
+      console.error('Failed to store user in localStorage:', e);
+    }
+    if (socketRef.current && socketRef.current.connected) {
       socketRef.current.emit('join-chat', userData);
       // user will be set when 'user-info' is received from backend
     }

@@ -116,4 +116,12 @@ server.listen(PORT, () => {
   logger.info(`Server running on port ${PORT}`);
 });
 
+process.on('unhandledRejection', (reason, promise) => {
+  logger.error({ reason }, 'Unhandled Rejection caught safely');
+});
+
+process.on('uncaughtException', (err) => {
+  logger.error({ err }, 'Uncaught Exception caught safely');
+});
+
 module.exports = { app };

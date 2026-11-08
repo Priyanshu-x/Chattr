@@ -111,19 +111,25 @@ class ChatService {
       throw new AppError('Username is reserved or invalid', 400);
     }
 
-    let user = await User.findOne({ socketId });
-
-    // If not found by socket, check by username to prevent duplicate active usernames (optional, but good practice)
-    // For anonymous chat, we might want to allow re-claiming if the socket disconnected recently, 
-    // but here we follow the existing pattern of creating/updating based on socket or existing data.
+    // Try finding by socketId first, or by username to prevent duplicate key errors
+    let user = await User.findOne({
+      $or: [
+        { socketId },
+        { username: userData.username }
+      ]
+    });
 
     if (user) {
+      user.socketId = socketId;
+      user.username = userData.username;
+      if (userData.avatar) user.avatar = userData.avatar;
+      if (ip) user.ip = ip;
       user.lastActive = new Date();
       await user.save();
     } else {
       user = new User({
         socketId,
-        username: userData.username, // Assumption: validation happened
+        username: userData.username,
         avatar: userData.avatar,
         joinedAt: new Date(),
         lastActive: new Date(),

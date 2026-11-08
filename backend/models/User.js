@@ -6,11 +6,14 @@ const UserSchema = new mongoose.Schema({
 	password: { type: String, required: false, select: false },
 	avatar: { type: String },
 	joinedAt: { type: Date, default: Date.now },
+	lastActive: { type: Date, default: Date.now },
 	messageCount: { type: Number, default: 0 },
 	isBanned: { type: Boolean, default: false },
-	ip: { type: String }
+	ip: { type: String },
+	socketId: { type: String }
 });
 
+UserSchema.index({ socketId: 1 });
 UserSchema.index({ ip: 1 });
 
 UserSchema.pre('save', async function (next) {
