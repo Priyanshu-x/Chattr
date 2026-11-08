@@ -167,6 +167,27 @@ img {
   animation: pulse 2s infinite;
 }
 
+@keyframes modernLoadingBar {
+  0% {
+    left: -40%;
+    width: 40%;
+  }
+  50% {
+    left: 20%;
+    width: 60%;
+  }
+  100% {
+    left: 100%;
+    width: 40%;
+  }
+}
+
+.animate-modern-loading-bar {
+  position: absolute;
+  height: 100%;
+  animation: modernLoadingBar 1.6s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
 @media (max-width: 480px) {
   body {
     font-size: 14px;
