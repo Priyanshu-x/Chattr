@@ -1,14 +1,29 @@
 // frontend/src/components/chat/MessageBubble.jsx - WORKING VERSION
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useSocket } from '../../hooks/useSocket';
 import { formatTime } from '../../utils/helpers';
 import { Pin, MoreVertical, Copy, Reply, FileText, Download } from 'lucide-react';
 import DOMPurify from 'dompurify'; // Import DOMPurify
+import KiraAvatarPet from './KiraAvatarPet';
 
 const MessageBubble = ({ message, isOwnMessage, showAvatar, onReply }) => {
   const { toggleReaction } = useSocket();
   const [showReactions, setShowReactions] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
+
+  const isKira = message.user?.username === 'Kira';
+  // If message just arrived within 3.5s, celebrate with happy pose for 1.5s
+  const isNewlyReceived = isKira && message.createdAt && (Date.now() - new Date(message.createdAt).getTime() < 3500);
+  const [kiraState, setKiraState] = useState(isNewlyReceived ? 'happy' : 'idle');
+
+  useEffect(() => {
+    if (kiraState === 'happy') {
+      const timer = setTimeout(() => {
+        setKiraState('idle');
+      }, 1500);
+      return () => clearTimeout(timer);
+    }
+  }, [kiraState]);
 
   const handleReaction = (emoji) => {
     toggleReaction(message._id, emoji);
@@ -180,7 +195,16 @@ const MessageBubble = ({ message, isOwnMessage, showAvatar, onReply }) => {
         )}
 
         {/* Message bubble */}
-        <div className="relative">
+        <div className={`relative ${isKira && !isOwnMessage ? 'mt-8 sm:mt-9' : ''}`}>
+          {/* Kira Avatar Pet - Anime girl companion on top of bubble */}
+          {isKira && !isOwnMessage && (
+            <div className="absolute -top-[50px] sm:-top-[54px] left-1 sm:left-2 z-20 pointer-events-auto -mb-[10px]">
+              <KiraAvatarPet
+                state={kiraState}
+                onClick={() => setKiraState('happy')}
+              />
+            </div>
+          )}
           <div
             className={`
               ${isOwnMessage

@@ -2,10 +2,13 @@
 import React, { useRef, useEffect } from 'react';
 import { useSocket } from '../../context/SocketContext';
 import MessageBubble from './MessageBubble';
+import KiraAvatarPet from './KiraAvatarPet';
 
 const MessageList = ({ onReply }) => {
   const { messages, typingUsers, user } = useSocket();
   const messagesEndRef = useRef(null);
+
+  const isKiraTyping = typingUsers.some(u => u.username === 'Kira');
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -56,7 +59,13 @@ const MessageList = ({ onReply }) => {
 
           {/* Typing Indicators */}
           {typingUsers.length > 0 && (
-            <div className="flex items-center space-x-3 px-2">
+            <div className={`flex items-center space-x-3 px-2 relative ${isKiraTyping ? 'mt-8 sm:mt-9' : ''}`}>
+              {/* Kira Thinking Pet on typing indicator */}
+              {isKiraTyping && (
+                <div className="absolute -top-[48px] sm:-top-[52px] left-8 sm:left-10 z-20 pointer-events-none -mb-[10px]">
+                  <KiraAvatarPet state="thinking" />
+                </div>
+              )}
               <div className="flex -space-x-2">
                 {typingUsers.slice(0, 3).map((user, index) => (
                   <img
