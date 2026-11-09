@@ -37,6 +37,24 @@ const MessageBubble = ({ message, isOwnMessage, showAvatar, onReply }) => {
             dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(message.content) }}
           />
         );
+      case 'sticker':
+        if (message.fileUrl || (message.content && (message.content.startsWith('http') || message.content.startsWith('data:') || message.content.startsWith('/')))) {
+          const stickerSrc = message.fileUrl ? getFileUrl(message.fileUrl) : message.content;
+          return (
+            <div className="py-1">
+              <img
+                src={stickerSrc}
+                alt="Sticker"
+                className="w-28 h-28 sm:w-36 sm:h-36 object-contain rounded-xl hover:scale-105 transition-transform duration-200 select-none drop-shadow-md"
+              />
+            </div>
+          );
+        }
+        return (
+          <div className="text-4xl py-1 select-none transform hover:scale-110 transition-transform">
+            {message.content}
+          </div>
+        );
       case 'image':
         return (
           <div className="relative">
@@ -185,7 +203,7 @@ const MessageBubble = ({ message, isOwnMessage, showAvatar, onReply }) => {
                 <div className="truncate max-w-[150px] sm:max-w-[200px]">
                   {message.replyTo.type === 'text'
                     ? message.replyTo.content
-                    : `${message.replyTo.type === 'image' ? '📷 ' : message.replyTo.type === 'voice' ? '🎤 ' : '📎 '}${message.replyTo.type === 'image' ? 'Image' : message.replyTo.type === 'voice' ? 'Voice Message' : 'File'}`
+                    : `${message.replyTo.type === 'image' ? '📷 Image' : message.replyTo.type === 'voice' ? '🎤 Voice Message' : message.replyTo.type === 'sticker' ? '🐱 Sticker' : '📎 File'}`
                   }
                 </div>
               </div>

@@ -8,6 +8,17 @@ const MessageInput = ({ replyingTo, setReplyingTo }) => {
   const [message, setMessage] = useState('');
   const [isRecording, setIsRecording] = useState(false);
   const [showStickers, setShowStickers] = useState(false);
+  const [stickerTab, setStickerTab] = useState('memes'); // 'memes' or 'emojis'
+
+  const memeStickers = [
+    { id: 'cat_pilot', name: 'Pilot Cat', src: '/stickers/cat_pilot.jpg' },
+    { id: 'duck_walking', name: 'Walking Duck', src: '/stickers/duck_walking.webp' },
+    { id: 'pop_cat', name: 'Pop Cat', src: 'https://media.tenor.com/7S8YgUo6l6MAAAAM/pop-cat-cat.gif' },
+    { id: 'crying_cat', name: 'Crying Cat', src: 'https://media1.tenor.com/m/o6j0_746mQ8AAAAC/crying-cat-cat.gif' },
+    { id: 'cat_vibing', name: 'Vibing Cat', src: 'https://media.tenor.com/83p1y3sO1r8AAAAM/cat-dance.gif' }
+  ];
+
+  const emojis = ['😀', '😂', '🥰', '😎', '🤔', '😴', '🐶', '🐱', '🦄', '🐼', '🍕', '🍔', '🍰', '🍎', '🔥', '💀', '🗿', '💅', '🤡', '✨'];
   const [selectedFile, setSelectedFile] = useState(null);
   const [filePreview, setFilePreview] = useState(null);
   const [isUploading, setIsUploading] = useState(false);
@@ -165,12 +176,10 @@ const MessageInput = ({ replyingTo, setReplyingTo }) => {
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
-  const handleStickerSelect = (emoji) => {
-    sendMessage({ type: 'sticker', content: emoji });
+  const handleStickerSelect = (stickerContent, stickerName) => {
+    sendMessage({ type: 'sticker', content: stickerContent, fileName: stickerName });
     setShowStickers(false);
   };
-
-  const emojis = ['😀', '😂', '🥰', '😎', '🤔', '😴', '🐶', '🐱', '🦄', '🐼', '🍕', '🍔', '🍰', '🍎'];
 
   if (!user) {
     return (
@@ -186,13 +195,77 @@ const MessageInput = ({ replyingTo, setReplyingTo }) => {
     <div className="relative">
       {/* Sticker Picker */}
       {showStickers && (
-        <div className="absolute bottom-full mb-2 left-4 right-4 bg-white/90 dark:bg-gray-800/90 backdrop-blur-md rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 p-4">
-          <h3 className="font-semibold text-gray-900 dark:text-white mb-3">Stickers</h3>
-          <div className="grid grid-cols-8 gap-2">
-            {emojis.map((emoji, index) => (
-              <button key={index} onClick={() => handleStickerSelect(emoji)} className="text-2xl hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg p-2 transition-colors">{emoji}</button>
-            ))}
+        <div className="absolute bottom-full mb-2 left-2 right-2 sm:left-4 sm:right-4 bg-white/95 dark:bg-gray-800/95 backdrop-blur-xl rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-700 p-4 z-50">
+          <div className="flex items-center justify-between mb-3 border-b border-gray-200 dark:border-gray-700 pb-2">
+            <div className="flex space-x-2">
+              <button
+                type="button"
+                onClick={() => setStickerTab('memes')}
+                className={`px-3 py-1 text-xs font-semibold rounded-lg transition-colors ${
+                  stickerTab === 'memes'
+                    ? 'bg-neutral-900 text-white dark:bg-white dark:text-neutral-900'
+                    : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700'
+                }`}
+              >
+                🐱 Gen Z Memes & Cats
+              </button>
+              <button
+                type="button"
+                onClick={() => setStickerTab('emojis')}
+                className={`px-3 py-1 text-xs font-semibold rounded-lg transition-colors ${
+                  stickerTab === 'emojis'
+                    ? 'bg-neutral-900 text-white dark:bg-white dark:text-neutral-900'
+                    : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700'
+                }`}
+              >
+                😀 Emojis
+              </button>
+            </div>
+            <button
+              type="button"
+              onClick={() => setShowStickers(false)}
+              className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 text-sm p-1 font-bold"
+            >
+              ✕
+            </button>
           </div>
+
+          {stickerTab === 'memes' ? (
+            <div className="grid grid-cols-3 sm:grid-cols-5 gap-3 max-h-48 overflow-y-auto custom-scrollbar p-1">
+              {memeStickers.map((sticker) => (
+                <button
+                  key={sticker.id}
+                  type="button"
+                  onClick={() => handleStickerSelect(sticker.src, sticker.name)}
+                  className="group relative flex flex-col items-center justify-center p-2 rounded-xl border border-gray-200 dark:border-gray-700 hover:border-neutral-900 dark:hover:border-white hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-all duration-200 hover:scale-105"
+                  title={sticker.name}
+                >
+                  <img
+                    src={sticker.src}
+                    alt={sticker.name}
+                    className="w-16 h-16 object-contain rounded-lg drop-shadow"
+                    loading="lazy"
+                  />
+                  <span className="text-[10px] mt-1 text-gray-500 dark:text-gray-400 font-medium truncate max-w-full">
+                    {sticker.name}
+                  </span>
+                </button>
+              ))}
+            </div>
+          ) : (
+            <div className="grid grid-cols-7 sm:grid-cols-10 gap-2 max-h-48 overflow-y-auto custom-scrollbar p-1">
+              {emojis.map((emoji, index) => (
+                <button
+                  key={index}
+                  type="button"
+                  onClick={() => handleStickerSelect(emoji)}
+                  className="text-2xl hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg p-2 transition-colors hover:scale-125"
+                >
+                  {emoji}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
       )}
 

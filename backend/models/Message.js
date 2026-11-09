@@ -3,7 +3,7 @@ const mongoose = require('mongoose');
 const MessageSchema = new mongoose.Schema({
   user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: function() { return this.type !== 'announcement'; } },
   content: { type: String },
-  type: { type: String, enum: ['text', 'image', 'voice', 'file', 'announcement'], default: 'text' },
+  type: { type: String, enum: ['text', 'image', 'voice', 'file', 'announcement', 'sticker'], default: 'text' },
   announcementType: { type: String, enum: ['info', 'warning', 'danger'] },
   // These fields should store paths to internally managed files, not arbitrary external URLs
   imageUrl: { type: String, default: null },

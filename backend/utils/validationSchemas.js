@@ -31,7 +31,7 @@ const updateProfileSchema = Joi.object({
 const messageSchema = Joi.object({
   user: Joi.string().hex().length(24).required(), // Assuming MongoDB ObjectId
   content: Joi.string().max(1000).allow(null, ''),
-  type: Joi.string().valid('text', 'image', 'voice', 'file').default('text'),
+  type: Joi.string().valid('text', 'image', 'voice', 'file', 'sticker', 'announcement').default('text'),
   // Updated to allow internal file paths instead of external URIs
   imageUrl: Joi.string().pattern(/^\/uploads\/.+/).allow(null, ''),
   voiceUrl: Joi.string().pattern(/^\/uploads\/.+/).allow(null, ''),

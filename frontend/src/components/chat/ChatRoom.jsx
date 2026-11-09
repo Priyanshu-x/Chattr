@@ -4,6 +4,7 @@ import { useTheme } from '../../context/ThemeContext';
 import { useSnow } from '../../context/SnowContext';
 import MessageList from './MessageList';
 import MessageInput from './MessageInput';
+import WalkingDuck from './WalkingDuck';
 import UserJoin from '../ui/UserJoin';
 import { Users, Sun, Moon, Settings, X, CloudSnow, Bell, BellOff, Pin, MessageSquare } from 'lucide-react';
 
@@ -250,8 +251,9 @@ const ChatRoom = () => {
       )}
 
       {/* Main Chat Area */}
-      <div className="flex-1 flex flex-col overflow-hidden">
+      <div className="flex-1 flex flex-col overflow-hidden relative">
         <MessageList onReply={setReplyingTo} />
+        <WalkingDuck />
         <MessageInput replyingTo={replyingTo} setReplyingTo={setReplyingTo} />
       </div>
 
