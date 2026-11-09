@@ -243,6 +243,11 @@ img {
   animation: kira-happy-bounce 0.65s cubic-bezier(0.34, 1.56, 0.64, 1) infinite;
 }
 
+/* State: surprised with comical bounce */
+.kira-pet-surprised {
+  animation: kira-surprised-shake 0.45s ease-in-out infinite;
+}
+
 @keyframes kira-sway {
   0%, 100% {
     transform: translateY(0px) rotate(0deg);
@@ -279,5 +284,17 @@ img {
   }
   50% {
     transform: translateY(-7px) scale(1.08);
+  }
+}
+
+@keyframes kira-surprised-shake {
+  0%, 100% {
+    transform: translateY(0px) rotate(0deg) scale(1.04);
+  }
+  25% {
+    transform: translateY(-3px) rotate(-3deg) scale(1.08);
+  }
+  75% {
+    transform: translateY(-1px) rotate(3deg) scale(1.08);
   }
 }
