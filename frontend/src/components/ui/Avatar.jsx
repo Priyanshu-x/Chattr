@@ -18,7 +18,7 @@ const Avatar = ({ src, alt, size = 'md', className = '' }) => {
       onError={(e) => {
         console.error('Avatar failed to load:', src, e);
         e.target.onerror = null; // Prevent infinite loop if fallback also fails
-        e.target.src = '/public/image-removebg-preview.png'; // Fallback image
+        e.target.src = 'https://api.dicebear.com/7.x/bottts/svg?seed=fallback'; // Fallback image
       }}
     />
   );

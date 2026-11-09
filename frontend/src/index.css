@@ -9,7 +9,7 @@
   
   body {
     font-family: 'Inter', system-ui, sans-serif;
-    background-image: url('./assets/light-bg.webp');
+    background-image: url('./assets/backgrounds/light-bg.webp');
     background-size: cover;
     background-position: center;
     background-attachment: fixed;
@@ -17,7 +17,7 @@
   }
 
   html.dark body {
-    background-image: url('./assets/black-bg.webp');
+    background-image: url('./assets/backgrounds/black-bg.webp');
   }
 }
 

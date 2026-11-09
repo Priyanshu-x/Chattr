@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useRef, useEffect } from 'react';
 import { Howl } from 'howler';
-import violinSound from '../assets/lovely.mp3';
+import violinSound from '../assets/sounds/lovely.mp3';
 
 const SnowContext = createContext();
 
