@@ -210,12 +210,12 @@ img {
 }
 
 /* ==========================================================================
-   Kira AI Anime Girl Pet Sprite & Animations
+   Kira AI Anime Girl Pet Animations
    ========================================================================== */
 .kira-pet-container {
   display: inline-block;
   user-select: none;
-  filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.2));
+  filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.25));
   transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
@@ -223,43 +223,24 @@ img {
   transform: scale(1.08) translateY(-2px);
 }
 
-.kira-pet-sprite {
-  width: 62px;
-  height: 62px;
-  background-image: url('/stickers/kira_spritesheet.webp');
-  background-size: 400% 100%;
-  background-repeat: no-repeat;
-  image-rendering: auto;
-}
-
-@media (min-width: 640px) {
-  .kira-pet-sprite {
-    width: 68px;
-    height: 68px;
-  }
-}
-
-/* State: idle (Frame 0: 0% 50%) */
+/* State: idle with gentle swaying breathing loop */
 .kira-pet-idle {
-  background-position: 0% 50%;
   animation: kira-sway 3.2s ease-in-out infinite;
 }
 
-/* State: talking (Frame 0 to Frame 1: 33.333% 50%) */
+/* State: talking with animated speech bob */
 .kira-pet-talking {
-  animation: kira-talk-mouth 0.26s steps(1) infinite, kira-talk-bob 0.52s ease-in-out infinite;
+  animation: kira-talk-bob 0.45s ease-in-out infinite;
 }
 
-/* State: thinking (Frame 2: 66.666% 50%) */
+/* State: thinking with head-tilt floating */
 .kira-pet-thinking {
-  background-position: 66.666% 50%;
   animation: kira-think-float 2.4s ease-in-out infinite;
 }
 
-/* State: happy (Frame 3: 100% 50%) */
+/* State: happy with joyful celebration bounce */
 .kira-pet-happy {
-  background-position: 100% 50%;
-  animation: kira-happy-bounce 0.7s ease-in-out infinite;
+  animation: kira-happy-bounce 0.65s cubic-bezier(0.34, 1.56, 0.64, 1) infinite;
 }
 
 @keyframes kira-sway {
@@ -274,21 +255,12 @@ img {
   }
 }
 
-@keyframes kira-talk-mouth {
-  0%, 100% {
-    background-position: 0% 50%;
-  }
-  50% {
-    background-position: 33.333% 50%;
-  }
-}
-
 @keyframes kira-talk-bob {
   0%, 100% {
     transform: translateY(0px) scale(1);
   }
   50% {
-    transform: translateY(-2.5px) scale(1.02);
+    transform: translateY(-3px) scale(1.03);
   }
 }
 
@@ -297,7 +269,7 @@ img {
     transform: translateY(0px) rotate(0deg);
   }
   50% {
-    transform: translateY(-3.5px) rotate(-3deg);
+    transform: translateY(-4px) rotate(-3.5deg);
   }
 }
 
@@ -306,6 +278,6 @@ img {
     transform: translateY(0px) scale(1);
   }
   50% {
-    transform: translateY(-5px) scale(1.06);
+    transform: translateY(-7px) scale(1.08);
   }
 }
