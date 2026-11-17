@@ -1,6 +1,5 @@
 // frontend/src/components/ui/VideoLoadingScreen.jsx
 import React, { useState, useEffect, useRef } from 'react';
-import { MessageSquare } from 'lucide-react';
 
 const VideoLoadingScreen = ({ connected }) => {
   const [isVisible, setIsVisible] = useState(!connected);
@@ -43,7 +42,7 @@ const VideoLoadingScreen = ({ connected }) => {
 
   return (
     <div
-      className={`fixed inset-0 z-[100] flex flex-col items-center justify-between bg-black text-white select-none overflow-hidden transition-opacity duration-500 ease-out ${
+      className={`fixed inset-0 z-[100] flex flex-col items-center justify-end bg-black text-white select-none overflow-hidden transition-opacity duration-500 ease-out ${
         isFadingOut ? 'opacity-0 pointer-events-none' : 'opacity-100'
       }`}
     >
@@ -77,28 +76,9 @@ const VideoLoadingScreen = ({ connected }) => {
           )}
         </video>
 
-        {/* Cinematic Vignette Overlay to maintain contrast for Header & Island Footer */}
+        {/* Cinematic Vignette Overlay to maintain contrast for Footer */}
         <div className="absolute inset-0 z-10 bg-gradient-to-t from-black/85 via-transparent to-black/60 pointer-events-none" />
       </div>
-
-      {/* Top Header */}
-      <header className="relative z-20 w-full max-w-4xl px-5 py-4 flex items-center justify-between">
-        {/* Brand Badge */}
-        <div className="flex items-center space-x-2.5 bg-white/5 backdrop-blur-xl px-3.5 py-1.5 rounded-full border border-white/10 shadow-lg">
-          <div className="w-6 h-6 rounded-lg bg-emerald-500 text-white flex items-center justify-center shadow-md shadow-emerald-500/20">
-            <MessageSquare className="w-3.5 h-3.5" />
-          </div>
-          <span className="font-bold text-sm tracking-wide text-white">Chattr</span>
-          {/* Dragon Pearl Beacon in Brand Badge */}
-          <span className="relative flex items-center justify-center w-3 h-3" aria-hidden="true">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
-            <span className="relative w-1.5 h-1.5 rounded-full bg-emerald-400 shadow-[0_0_6px_rgba(52,211,153,1)]" />
-          </span>
-        </div>
-      </header>
-
-      {/* Center Spacer */}
-      <div className="flex-1 pointer-events-none" />
 
       {/* Real Chinese Dragon Connection Console */}
       <footer className="relative z-20 w-full max-w-2xl px-3 sm:px-4 pb-4 sm:pb-6 flex flex-col items-center">
