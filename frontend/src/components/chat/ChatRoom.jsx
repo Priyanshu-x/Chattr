@@ -6,6 +6,7 @@ import MessageList from './MessageList';
 import MessageInput from './MessageInput';
 import WalkingDuck from './WalkingDuck';
 import UserJoin from '../ui/UserJoin';
+import VideoLoadingScreen from '../ui/VideoLoadingScreen';
 import { Users, Sun, Moon, Settings, X, CloudSnow, Bell, BellOff, Pin, MessageSquare } from 'lucide-react';
 
 const ChatRoom = () => {
@@ -31,59 +32,11 @@ const ChatRoom = () => {
     }
   }, [user]);
 
-  if (!connected) {
-    return (
-      <div className="min-h-screen flex flex-col items-center justify-center p-4 relative overflow-hidden select-none">
-        {/* Top modern loading progress bar */}
-        <div className="fixed top-0 left-0 right-0 h-1 bg-neutral-200/50 dark:bg-neutral-800/50 overflow-hidden z-50">
-          <div className="h-full bg-gradient-to-r from-neutral-900 via-neutral-500 to-neutral-900 dark:from-white dark:via-neutral-400 dark:to-white animate-modern-loading-bar rounded-full"></div>
-        </div>
-
-        {/* Modern Loading Card */}
-        <div className="relative w-full max-w-sm sm:max-w-md p-6 sm:p-8 rounded-2xl bg-white/80 dark:bg-neutral-900/80 backdrop-blur-xl border border-neutral-200/80 dark:border-neutral-800/80 shadow-2xl text-center space-y-6 animate-fade-in">
-          {/* Logo / Brand Icon with Live Pulse */}
-          <div className="relative inline-flex items-center justify-center">
-            <div className="w-14 h-14 rounded-2xl bg-neutral-900 dark:bg-white text-white dark:text-neutral-950 flex items-center justify-center shadow-lg shadow-neutral-900/10 dark:shadow-white/5">
-              <MessageSquare className="w-7 h-7" />
-            </div>
-            <span className="absolute -top-1 -right-1 flex h-3.5 w-3.5">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-3.5 w-3.5 bg-emerald-500 border-2 border-white dark:border-neutral-900"></span>
-            </span>
-          </div>
-
-          {/* Title & Connection Status */}
-          <div className="space-y-1">
-            <h2 className="text-xl font-bold tracking-tight text-neutral-900 dark:text-white">
-              Chattr
-            </h2>
-            <p className="text-sm font-medium text-neutral-600 dark:text-neutral-400">
-              Connecting to chat server...
-            </p>
-          </div>
-
-          {/* Modern Loading Bar */}
-          <div className="space-y-2 pt-1">
-            <div className="w-full h-2 bg-neutral-200 dark:bg-neutral-800 rounded-full overflow-hidden relative shadow-inner">
-              <div className="h-full bg-gradient-to-r from-neutral-900 via-neutral-500 to-neutral-900 dark:from-neutral-200 dark:via-white dark:to-neutral-200 animate-modern-loading-bar rounded-full"></div>
-            </div>
-            <div className="flex justify-between items-center text-xs text-neutral-400 dark:text-neutral-500 font-medium px-1">
-              <span>Establishing connection</span>
-              <span className="animate-pulse">Please wait...</span>
-            </div>
-          </div>
-
-          {/* Info note */}
-          <p className="text-xs text-neutral-500 dark:text-neutral-400 leading-relaxed">
-            Attempting to establish a secure connection. Please check your network connectivity if this takes too long.
-          </p>
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <div className="flex flex-col h-dvh">
+    <div className="flex flex-col h-dvh relative">
+      {/* Video Loading Screen Overlay */}
+      <VideoLoadingScreen connected={connected} />
+
       {/* User Join Modal */}
       {showUserJoin && (
         <UserJoin onClose={() => setShowUserJoin(false)} />
