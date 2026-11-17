@@ -1,19 +1,29 @@
 // frontend/src/components/ui/VideoLoadingScreen.jsx
 import React, { useState, useEffect, useRef } from 'react';
-import { Volume2, VolumeX, MessageSquare, Wifi } from 'lucide-react';
+import { MessageSquare } from 'lucide-react';
 
 const VideoLoadingScreen = ({ connected }) => {
   const [isVisible, setIsVisible] = useState(!connected);
   const [isFadingOut, setIsFadingOut] = useState(false);
-  const [isMuted, setIsMuted] = useState(true);
+  const [isDesktop, setIsDesktop] = useState(
+    typeof window !== 'undefined' ? window.innerWidth >= 768 : true
+  );
   const videoRef = useRef(null);
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsDesktop(window.innerWidth >= 768);
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   useEffect(() => {
     if (connected) {
       setIsFadingOut(true);
       const timer = setTimeout(() => {
         setIsVisible(false);
-      }, 550);
+      }, 500);
       return () => clearTimeout(timer);
     } else {
       setIsVisible(true);
@@ -21,31 +31,13 @@ const VideoLoadingScreen = ({ connected }) => {
     }
   }, [connected]);
 
-  // Attempt auto-play when visible
+  // Ensure instant, continuous, butter-smooth video playback
   useEffect(() => {
     if (videoRef.current) {
-      videoRef.current.play().catch(() => {
-        // Browser autoplay restriction, fallback to muted play
-        if (videoRef.current) {
-          videoRef.current.muted = true;
-          setIsMuted(true);
-          videoRef.current.play().catch(() => {});
-        }
-      });
+      videoRef.current.playbackRate = 1.0;
+      videoRef.current.play().catch(() => {});
     }
-  }, [isVisible]);
-
-  const toggleSound = (e) => {
-    e.stopPropagation();
-    if (videoRef.current) {
-      const nextMuted = !videoRef.current.muted;
-      videoRef.current.muted = nextMuted;
-      setIsMuted(nextMuted);
-      if (!nextMuted) {
-        videoRef.current.play().catch(() => {});
-      }
-    }
-  };
+  }, [isVisible, isDesktop]);
 
   if (!isVisible) return null;
 
@@ -55,89 +47,125 @@ const VideoLoadingScreen = ({ connected }) => {
         isFadingOut ? 'opacity-0 pointer-events-none' : 'opacity-100'
       }`}
     >
-      {/* 1. Ambient blurred background video for widescreen display */}
-      <video
-        src="/videos/loading_screen.mp4"
-        autoPlay
-        loop
-        muted
-        playsInline
-        aria-hidden="true"
-        className="absolute inset-0 w-full h-full object-cover filter blur-3xl opacity-35 scale-110 pointer-events-none"
-      />
-
-      {/* Dark gradient overlay for deep contrast */}
-      <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-transparent to-black/80 pointer-events-none z-0" />
-
-      {/* Top Header Overlay */}
-      <header className="relative z-20 w-full max-w-5xl px-5 py-4 flex items-center justify-between">
-        {/* Brand */}
-        <div className="flex items-center space-x-2.5 bg-black/40 backdrop-blur-md px-3.5 py-1.5 rounded-full border border-white/10 shadow-lg">
-          <div className="w-7 h-7 rounded-lg bg-emerald-500 text-white flex items-center justify-center shadow-md shadow-emerald-500/20">
-            <MessageSquare className="w-4 h-4" />
-          </div>
-          <span className="font-bold text-sm tracking-wide text-white">Chattr</span>
-          <span className="flex h-2 w-2 relative">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-            <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-          </span>
-        </div>
-
-        {/* Audio Toggle Button */}
-        <button
-          onClick={toggleSound}
-          type="button"
-          aria-label={isMuted ? 'Unmute video audio' : 'Mute video audio'}
-          className="flex items-center space-x-2 bg-black/40 hover:bg-black/60 active:scale-95 transition-all backdrop-blur-md px-3.5 py-1.5 rounded-full border border-white/10 text-xs font-medium text-neutral-200 shadow-lg"
+      {/* Full-Screen Video Background: Native 16:9 on PC and 9:16 on Phone */}
+      <div className="absolute inset-0 z-0 flex items-center justify-center overflow-hidden bg-black">
+        <video
+          ref={videoRef}
+          key={isDesktop ? 'desktop-video' : 'mobile-video'}
+          autoPlay
+          loop
+          muted
+          playsInline
+          preload="auto"
+          poster={
+            isDesktop
+              ? '/videos/loading_desktop_poster.png'
+              : '/videos/loading_fullscreen_poster.png'
+          }
+          className="w-full h-full object-cover pointer-events-none select-none"
         >
-          {isMuted ? (
+          {isDesktop ? (
             <>
-              <VolumeX className="w-4 h-4 text-neutral-400" />
-              <span className="hidden sm:inline">Unmute Sound</span>
+              <source src="/videos/loading_desktop.webm" type="video/webm" />
+              <source src="/videos/loading_desktop.mp4" type="video/mp4" />
             </>
           ) : (
             <>
-              <Volume2 className="w-4 h-4 text-emerald-400 animate-pulse" />
-              <span className="hidden sm:inline text-emerald-300">Sound On</span>
+              <source src="/videos/loading_fullscreen.webm" type="video/webm" />
+              <source src="/videos/loading_fullscreen.mp4" type="video/mp4" />
             </>
           )}
-        </button>
+        </video>
+
+        {/* Cinematic Vignette Overlay to maintain contrast for Header & Island Footer */}
+        <div className="absolute inset-0 z-10 bg-gradient-to-t from-black/85 via-transparent to-black/60 pointer-events-none" />
+      </div>
+
+      {/* Top Header */}
+      <header className="relative z-20 w-full max-w-4xl px-5 py-4 flex items-center justify-between">
+        {/* Brand Badge */}
+        <div className="flex items-center space-x-2.5 bg-white/5 backdrop-blur-xl px-3.5 py-1.5 rounded-full border border-white/10 shadow-lg">
+          <div className="w-6 h-6 rounded-lg bg-emerald-500 text-white flex items-center justify-center shadow-md shadow-emerald-500/20">
+            <MessageSquare className="w-3.5 h-3.5" />
+          </div>
+          <span className="font-bold text-sm tracking-wide text-white">Chattr</span>
+          {/* Dragon Pearl Beacon in Brand Badge */}
+          <span className="relative flex items-center justify-center w-3 h-3" aria-hidden="true">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+            <span className="relative w-1.5 h-1.5 rounded-full bg-emerald-400 shadow-[0_0_6px_rgba(52,211,153,1)]" />
+          </span>
+        </div>
       </header>
 
-      {/* 2. Main Central Video Container */}
-      <main className="relative z-10 flex-1 flex items-center justify-center w-full px-0 sm:px-4 py-2">
-        <div className="relative w-full h-full sm:h-auto sm:max-w-[440px] sm:max-h-[75vh] flex items-center justify-center">
-          <video
-            ref={videoRef}
-            src="/videos/loading_screen.mp4"
-            poster="/videos/loading_poster.jpg"
-            autoPlay
-            loop
-            muted={isMuted}
-            playsInline
-            className="w-full h-full object-contain sm:object-cover sm:rounded-3xl sm:border sm:border-white/15 sm:shadow-[0_0_50px_rgba(0,0,0,0.85)]"
+      {/* Center Spacer */}
+      <div className="flex-1 pointer-events-none" />
+
+      {/* Real Chinese Dragon Connection Console */}
+      <footer className="relative z-20 w-full max-w-2xl px-3 sm:px-4 pb-4 sm:pb-6 flex flex-col items-center">
+        {/* The Coiled Chinese Dragon Real 3D Frame */}
+        <div className="relative w-full aspect-[1376/768] max-h-[220px] sm:max-h-[260px] flex items-center justify-center">
+          {/* Photorealistic 3D Chinese Dragon Frame */}
+          <img
+            src="/images/real_chinese_dragon_frame.webp"
+            alt="Real Chinese Dragon"
+            className="absolute inset-0 w-full h-full object-contain pointer-events-none select-none z-0 filter drop-shadow-[0_0_25px_rgba(16,185,129,0.35)]"
           />
-        </div>
-      </main>
 
-      {/* 3. Floating Bottom Connection Status Bar */}
-      <footer className="relative z-20 w-full max-w-md px-4 pb-6 sm:pb-8 flex flex-col items-center">
-        <div className="w-full bg-black/60 backdrop-blur-xl border border-white/15 rounded-2xl p-4 shadow-2xl text-center space-y-3">
-          {/* Status text with live icon */}
-          <div className="flex items-center justify-center space-x-2 text-sm font-semibold text-neutral-100">
-            <Wifi className="w-4 h-4 text-emerald-400 animate-pulse" />
-            <span>Connecting to chat server...</span>
-          </div>
+          {/* Foreground Content Nested Seamlessly Inside Dragon's Framed Card */}
+          <div
+            className="absolute flex flex-col justify-between z-10 px-2.5 py-1 sm:px-4 sm:py-2"
+            style={{
+              left: '20%',
+              top: '32%',
+              width: '61%',
+              height: '38%',
+            }}
+          >
+            {/* Top Row: Flaming Dragon Pearl Indicator + Text */}
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-2 sm:space-x-2.5 min-w-0">
+                {/* The Legendary Flaming Dragon Pearl (Indicator) */}
+                <div className="relative flex items-center justify-center w-4 h-4 sm:w-5 sm:h-5 shrink-0">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-60" />
+                  <span className="absolute w-3.5 h-3.5 sm:w-4 sm:h-4 rounded-full border border-dashed border-teal-300 animate-[spin_4s_linear_infinite]" />
+                  <span className="relative flex items-center justify-center w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-gradient-to-tr from-emerald-500 via-teal-300 to-white shadow-[0_0_8px_rgba(52,211,153,1)]">
+                    <span className="w-1 h-1 rounded-full bg-white shadow-sm" />
+                  </span>
+                </div>
 
-          {/* Glowing Animated Loading Bar */}
-          <div className="w-full h-1.5 bg-white/10 rounded-full overflow-hidden relative shadow-inner">
-            <div className="h-full bg-gradient-to-r from-emerald-500 via-teal-300 to-emerald-500 animate-modern-loading-bar rounded-full"></div>
-          </div>
+                <h3 className="text-[11px] sm:text-xs md:text-sm font-semibold tracking-wide text-neutral-100 flex items-center truncate">
+                  Connecting to chat server
+                  <span className="inline-flex tracking-tighter text-emerald-400 ml-0.5">
+                    <span className="animate-pulse">.</span>
+                    <span className="animate-pulse delay-150">.</span>
+                    <span className="animate-pulse delay-300">.</span>
+                  </span>
+                </h3>
+              </div>
 
-          {/* Subtext info */}
-          <div className="flex items-center justify-between text-[11px] text-neutral-400 font-medium px-1">
-            <span>Establishing connection</span>
-            <span className="text-emerald-400 font-medium animate-pulse">Please wait...</span>
+              {/* Right: Dragon Seal Tag */}
+              <div className="hidden xs:flex sm:flex items-center space-x-1 px-2 py-0.5 rounded-full bg-emerald-950/70 border border-emerald-500/40 text-[9px] font-mono text-emerald-300 shadow-sm shrink-0">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                <span className="font-semibold tracking-wider">TLS 1.3</span>
+              </div>
+            </div>
+
+            {/* Middle Row: Dragon Qi Energy Progress Track */}
+            <div className="w-full my-0.5 sm:my-1">
+              <div className="w-full h-1 sm:h-1.5 bg-black/80 rounded-full border border-emerald-500/30 overflow-hidden relative shadow-inner p-[0.5px]">
+                <div className="h-full bg-gradient-to-r from-emerald-500 via-teal-200 to-emerald-400 animate-modern-loading-bar rounded-full shadow-[0_0_12px_rgba(52,211,153,0.9)]" />
+              </div>
+            </div>
+
+            {/* Bottom Row: Exact Status Text */}
+            <div className="flex items-center justify-between text-[8px] sm:text-[10px] md:text-xs font-mono text-neutral-400 leading-none">
+              <span className="text-neutral-300 truncate">
+                Establishing connection
+              </span>
+              <span className="text-emerald-400 font-medium tracking-wide shrink-0 ml-1.5">
+                Please wait...
+              </span>
+            </div>
           </div>
         </div>
       </footer>
